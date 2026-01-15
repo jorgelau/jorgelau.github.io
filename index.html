@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative AI Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Global Top Bar -->
+    <header class="top-bar">
+        <div class="search-box">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input type="text" placeholder="搜索素材、标签、语言..." id="globalSearch">
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn" id="notificationBtn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M15 7C15 5.67392 14.4732 4.40215 13.5355 3.46447C12.5979 2.52678 11.3261 2 10 2C8.67392 2 7.40215 2.52678 6.46447 3.46447C5.52678 4.40215 5 5.67392 5 7C5 13 2 15 2 15H18C18 15 15 13 15 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M11.73 18C11.5542 18.3031 11.3019 18.5547 10.9982 18.7295C10.6946 18.9044 10.3504 18.9965 10 18.9965C9.64964 18.9965 9.30541 18.9044 9.00179 18.7295C8.69818 18.5547 8.44583 18.3031 8.27002 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="badge">3</span>
+            </button>
+            <div class="user-avatar">
+                <span>JD</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <h1>Creative<br>AI Studio</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-page="library">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <rect x="3" y="3" width="6" height="6" stroke="currentColor" stroke-width="1.5"/>
+                    <rect x="11" y="3" width="6" height="6" stroke="currentColor" stroke-width="1.5"/>
+                    <rect x="3" y="11" width="6" height="6" stroke="currentColor" stroke-width="1.5"/>
+                    <rect x="11" y="11" width="6" height="6" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                <span>素材库</span>
+            </a>
+            <a href="#" class="nav-item" data-page="create">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>AI 创作</span>
+            </a>
+            <a href="#" class="nav-item" data-page="workspace">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                <span>工作台</span>
+            </a>
+            <a href="#" class="nav-item" data-page="settings">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 1V4M10 16V19M19 10H16M4 10H1M16.24 16.24L14.12 14.12M5.88 5.88L3.76 3.76M16.24 3.76L14.12 5.88M5.88 14.12L3.76 16.24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>设置</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Asset Library Page -->
+        <div class="page active" id="libraryPage">
+            <div class="page-header">
+                <h2>素材库</h2>
+                <div class="toolbar">
+                    <div class="view-switcher">
+                        <button class="view-btn active" data-view="grid">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <rect x="1" y="1" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="10" y="1" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="1" y="10" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="10" y="10" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                        <button class="view-btn" data-view="masonry">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <rect x="1" y="1" width="5" height="7" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="10" y="1" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="1" y="12" width="5" height="3" stroke="currentColor" stroke-width="1.5"/>
+                                <rect x="10" y="10" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="btn-secondary" id="filterBtn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M1 4H15M3 8H13M6 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        筛选
+                    </button>
+                    <select class="sort-select">
+                        <option>最新上传</option>
+                        <option>最近更新</option>
+                        <option>Like 最多</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="assets-grid" id="assetsGrid"></div>
+        </div>
+
+        <!-- Asset Detail Page -->
+        <div class="page" id="detailPage"></div>
+
+        <!-- AI Create Page -->
+        <div class="page" id="createPage"></div>
+
+        <!-- Workspace Page -->
+        <div class="page" id="workspacePage"></div>
+
+        <!-- Settings Page -->
+        <div class="page" id="settingsPage"></div>
+    </main>
+
+    <!-- Filter Drawer -->
+    <div class="drawer" id="filterDrawer">
+        <div class="drawer-header">
+            <h3>筛选条件</h3>
+            <button class="close-btn" id="closeFilter">×</button>
+        </div>
+        <div class="drawer-content">
+            <div class="filter-section">
+                <label>标签</label>
+                <input type="text" placeholder="搜索标签..." class="filter-input">
+            </div>
+            <div class="filter-section">
+                <label>创作人</label>
+                <input type="text" placeholder="输入创作人..." class="filter-input">
+            </div>
+            <div class="filter-section">
+                <label>语言</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" value="en"> English</label>
+                    <label><input type="checkbox" value="zh"> 中文</label>
+                    <label><input type="checkbox" value="ar"> العربية</label>
+                    <label><input type="checkbox" value="fr"> Français</label>
+                    <label><input type="checkbox" value="es"> Español</label>
+                    <label><input type="checkbox" value="no-lang"> 无语言素材</label>
+                </div>
+            </div>
+            <div class="filter-section">
+                <label>其他选项</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox"> 透明背景</label>
+                    <label><input type="checkbox"> 我 Like 的</label>
+                    <label><input type="checkbox"> 我创作的</label>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn-secondary">重置</button>
+                <button class="btn-primary">应用筛选</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset Picker Modal -->
+    <div class="asset-picker-modal" id="assetPickerModal">
+        <div class="asset-picker-overlay" onclick="closeAssetPicker()"></div>
+        <div class="asset-picker-content">
+            <div class="asset-picker-header">
+                <h3>从素材库选择</h3>
+                <button class="close-btn" onclick="closeAssetPicker()">×</button>
+            </div>
+            <div class="asset-picker-search">
+                <div class="search-box" style="width: 100%;">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" placeholder="搜索素材..." id="assetPickerSearch">
+                </div>
+            </div>
+            <div class="asset-picker-body">
+                <div class="assets-grid" id="assetPickerGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
