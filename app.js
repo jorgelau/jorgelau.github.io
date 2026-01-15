@@ -212,7 +212,10 @@ const AppState = {
 
     // Preset editor state
     editingPresetId: null,
-    editingPresetSizes: []
+    editingPresetSizes: [],
+
+    // Multi-size selection state
+    selectedSizesForGeneration: []
 };
 
 // ============================================================
@@ -1154,7 +1157,15 @@ function renderMultiSizeTool(canvas, settings) {
                         `;
                     }).join('')}
                 </div>
-                <button class="btn-secondary" style="margin-top: 16px; opacity: 0.5; cursor: not-allowed;" onclick="showSelectedSizes()" disabled>请先选择至少一个尺寸组合</button>
+                <div style="display: flex; gap: 12px; margin-top: 16px;">
+                    <button class="btn-secondary" style="flex: 1; opacity: 0.5; cursor: not-allowed;" onclick="showSelectedSizes()" disabled>查看已选尺寸</button>
+                    <button class="btn-secondary" style="padding: 10px 20px;" onclick="addCustomSizeDirectly()">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right: 4px;">
+                            <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        添加自定义尺寸
+                    </button>
+                </div>
             </div>
 
             <!-- Selected Sizes -->
@@ -2006,12 +2017,22 @@ function showSelectedSizes() {
         });
     });
 
+    // Store in AppState
+    AppState.selectedSizesForGeneration = allSizes;
+
+    renderSelectedSizesList();
+
     const previewDiv = document.getElementById('selectedSizesPreview');
+    previewDiv.style.display = 'block';
+    previewDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderSelectedSizesList() {
     const listDiv = document.getElementById('selectedSizesList');
 
     listDiv.innerHTML = `
         <div style="display: grid; gap: 12px;">
-            ${allSizes.map((size, index) => `
+            ${AppState.selectedSizesForGeneration.map((size, index) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--color-hover); border-radius: 6px;">
                     <div>
                         <div style="font-size: 14px; font-weight: 500; font-family: monospace; margin-bottom: 4px;">${size.width} × ${size.height} px</div>
@@ -2026,52 +2047,139 @@ function showSelectedSizes() {
                                 </span>
                             ` : ''}
                             ${size.formats ? `<span>格式: ${size.formats.join(', ').toUpperCase()}</span>` : ''}
+                            ${size.presetName ? `<span style="opacity: 0.6;">• 来自 ${size.presetName}</span>` : '<span style="opacity: 0.6;">• 自定义</span>'}
                         </div>
                     </div>
-                    <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="removeSize(${index})">移除</button>
+                    <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="removeSizeFromSelection(${index})">移除</button>
                 </div>
             `).join('')}
         </div>
-        <button class="btn-secondary" style="margin-top: 12px; width: 100%;" onclick="addCustomSize()">+ 添加自定义尺寸</button>
+        <button class="btn-secondary" style="margin-top: 12px; width: 100%;" onclick="addCustomSize()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right: 4px;">
+                <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            添加自定义尺寸
+        </button>
     `;
-
-    previewDiv.style.display = 'block';
-    previewDiv.scrollIntoView({ behavior: 'smooth' });
 }
 
-function proceedToCropping() {
-    const selectedPresets = AppState.sizePresets.filter(preset => {
-        const checkbox = document.getElementById(`preset-${preset.id}`);
-        return checkbox && checkbox.checked;
-    });
+function addCustomSize() {
+    // Open custom size modal
+    document.getElementById('customSizeModal').classList.add('open');
+}
 
-    if (selectedPresets.length === 0) {
-        showNotification('请先选择至少一个尺寸组合', 'error');
+function addCustomSizeDirectly() {
+    // Initialize selected sizes array if empty
+    if (AppState.selectedSizesForGeneration.length === 0) {
+        // Show the preview section
+        const previewDiv = document.getElementById('selectedSizesPreview');
+        previewDiv.style.display = 'block';
+        renderSelectedSizesList();
+    }
+
+    // Open custom size modal
+    addCustomSize();
+}
+
+function closeCustomSizeModal() {
+    document.getElementById('customSizeModal').classList.remove('open');
+
+    // Clear inputs
+    document.getElementById('customSizeWidth').value = '';
+    document.getElementById('customSizeHeight').value = '';
+    document.getElementById('customSizeMaxSize').value = '';
+}
+
+function saveCustomSize() {
+    const widthInput = document.getElementById('customSizeWidth');
+    const heightInput = document.getElementById('customSizeHeight');
+    const maxSizeInput = document.getElementById('customSizeMaxSize');
+
+    const width = parseInt(widthInput.value);
+    const height = parseInt(heightInput.value);
+    const maxSize = maxSizeInput.value ? parseInt(maxSizeInput.value) : null;
+
+    // Validation
+    if (!width || !height || width <= 0 || height <= 0) {
+        showNotification('请输入有效的宽度和高度', 'error');
         return;
     }
 
-    // Collect all unique sizes
-    const allSizes = [];
-    selectedPresets.forEach(preset => {
-        preset.sizes.forEach(size => {
-            const exists = allSizes.find(s =>
-                s.width === size.width &&
-                s.height === size.height &&
-                s.transparent === size.transparent &&
-                s.maxSize === size.maxSize
-            );
-            if (!exists) {
-                allSizes.push({
-                    ...size,
-                    presetName: preset.name,
-                    // Add cropping state
-                    scale: 100,
-                    offsetX: 0,
-                    offsetY: 0
-                });
-            }
-        });
+    if (maxSize !== null && maxSize <= 0) {
+        showNotification('文件大小限制必须大于 0', 'error');
+        return;
+    }
+
+    // Check for duplicates
+    const duplicate = AppState.selectedSizesForGeneration.find(s =>
+        s.width === width &&
+        s.height === height
+    );
+
+    if (duplicate) {
+        showNotification('该尺寸已存在于列表中', 'error');
+        return;
+    }
+
+    // Add custom size to selection
+    AppState.selectedSizesForGeneration.push({
+        width,
+        height,
+        maxSize,
+        transparent: false,
+        formats: ['png', 'jpg'],
+        presetName: null // null indicates custom size
     });
+
+    // Re-render list
+    renderSelectedSizesList();
+
+    // Close modal
+    closeCustomSizeModal();
+
+    const sizeInfo = maxSize ? `${width}×${height} (最大 ${maxSize} KB)` : `${width}×${height}`;
+    showNotification(`已添加自定义尺寸 ${sizeInfo}`, 'success');
+
+    // Show the selected sizes preview if it's hidden
+    const previewDiv = document.getElementById('selectedSizesPreview');
+    if (previewDiv.style.display === 'none') {
+        previewDiv.style.display = 'block';
+    }
+}
+
+function removeSizeFromSelection(index) {
+    if (index >= 0 && index < AppState.selectedSizesForGeneration.length) {
+        const size = AppState.selectedSizesForGeneration[index];
+        AppState.selectedSizesForGeneration.splice(index, 1);
+
+        // Re-render list
+        renderSelectedSizesList();
+
+        const sizeInfo = `${size.width}×${size.height}`;
+        showNotification(`已移除尺寸 ${sizeInfo}`, 'success');
+
+        // Hide preview if no sizes left
+        if (AppState.selectedSizesForGeneration.length === 0) {
+            document.getElementById('selectedSizesPreview').style.display = 'none';
+        }
+    }
+}
+
+function proceedToCropping() {
+    // Use sizes from AppState.selectedSizesForGeneration (includes custom sizes)
+    if (AppState.selectedSizesForGeneration.length === 0) {
+        showNotification('请先选择至少一个尺寸', 'error');
+        return;
+    }
+
+    // Add cropping state to each size
+    const allSizes = AppState.selectedSizesForGeneration.map(size => ({
+        ...size,
+        // Add cropping state
+        scale: 100,
+        offsetX: 0,
+        offsetY: 0
+    }));
 
     // Save to state
     AppState.currentCroppingSizes = allSizes;
