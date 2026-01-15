@@ -208,7 +208,11 @@ const AppState = {
     currentMultilingualTexts: {},
     currentMultilingualPreviews: {},
     currentPreviewLanguage: null,
-    isMultilingualFlow: false
+    isMultilingualFlow: false,
+
+    // Preset editor state
+    editingPresetId: null,
+    editingPresetSizes: []
 };
 
 // ============================================================
@@ -2386,7 +2390,23 @@ function managePresets() {
 }
 
 function editPreset(presetId) {
-    showNotification('预设编辑功能开发中...');
+    const preset = AppState.sizePresets.find(p => p.id === presetId);
+    if (!preset) {
+        showNotification('预设不存在');
+        return;
+    }
+
+    // Set editing state
+    AppState.editingPresetId = presetId;
+    AppState.editingPresetSizes = JSON.parse(JSON.stringify(preset.sizes)); // Deep copy
+
+    // Open modal and populate fields
+    document.getElementById('presetEditorTitle').textContent = '编辑预设组合';
+    document.getElementById('presetName').value = preset.name;
+    renderPresetSizesList();
+
+    // Show modal
+    document.getElementById('presetEditorModal').classList.add('open');
 }
 
 function deletePreset(presetId) {
@@ -2401,7 +2421,135 @@ function deletePreset(presetId) {
 }
 
 function createNewPreset() {
-    showNotification('新建预设功能开发中...');
+    // Reset editing state
+    AppState.editingPresetId = null;
+    AppState.editingPresetSizes = [];
+
+    // Open modal with empty fields
+    document.getElementById('presetEditorTitle').textContent = '新建预设组合';
+    document.getElementById('presetName').value = '';
+    renderPresetSizesList();
+
+    // Show modal
+    document.getElementById('presetEditorModal').classList.add('open');
+}
+
+function closePresetEditor() {
+    document.getElementById('presetEditorModal').classList.remove('open');
+
+    // Clear form
+    document.getElementById('presetName').value = '';
+    document.getElementById('newSizeWidth').value = '';
+    document.getElementById('newSizeHeight').value = '';
+    AppState.editingPresetId = null;
+    AppState.editingPresetSizes = [];
+}
+
+function renderPresetSizesList() {
+    const container = document.getElementById('presetSizesList');
+
+    if (AppState.editingPresetSizes.length === 0) {
+        container.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: var(--color-secondary); font-size: 14px; border: 1px dashed var(--color-border); border-radius: var(--radius);">
+                暂无尺寸，请添加至少一个尺寸
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = AppState.editingPresetSizes.map((size, index) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius);">
+            <span style="font-size: 14px; font-family: monospace; font-weight: 500;">
+                ${size.width} × ${size.height} px
+            </span>
+            <button class="btn-secondary" onclick="removeSizeFromPreset(${index})" style="padding: 6px 12px; font-size: 13px; color: #e74c3c; border-color: #e74c3c;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right: 4px;">
+                    <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                删除
+            </button>
+        </div>
+    `).join('');
+}
+
+function addSizeToPreset() {
+    const widthInput = document.getElementById('newSizeWidth');
+    const heightInput = document.getElementById('newSizeHeight');
+
+    const width = parseInt(widthInput.value);
+    const height = parseInt(heightInput.value);
+
+    // Validation
+    if (!width || !height || width <= 0 || height <= 0) {
+        showNotification('请输入有效的宽度和高度', 'error');
+        return;
+    }
+
+    // Check for duplicates
+    const duplicate = AppState.editingPresetSizes.find(s => s.width === width && s.height === height);
+    if (duplicate) {
+        showNotification('该尺寸已存在', 'error');
+        return;
+    }
+
+    // Add size
+    AppState.editingPresetSizes.push({ width, height });
+
+    // Clear inputs
+    widthInput.value = '';
+    heightInput.value = '';
+
+    // Re-render list
+    renderPresetSizesList();
+
+    showNotification(`已添加尺寸 ${width}×${height}`, 'success');
+}
+
+function removeSizeFromPreset(index) {
+    if (index >= 0 && index < AppState.editingPresetSizes.length) {
+        const size = AppState.editingPresetSizes[index];
+        AppState.editingPresetSizes.splice(index, 1);
+        renderPresetSizesList();
+        showNotification(`已删除尺寸 ${size.width}×${size.height}`, 'success');
+    }
+}
+
+function savePreset() {
+    const name = document.getElementById('presetName').value.trim();
+
+    // Validation
+    if (!name) {
+        showNotification('请输入预设名称', 'error');
+        return;
+    }
+
+    if (AppState.editingPresetSizes.length === 0) {
+        showNotification('请至少添加一个尺寸', 'error');
+        return;
+    }
+
+    if (AppState.editingPresetId) {
+        // Edit existing preset
+        const preset = AppState.sizePresets.find(p => p.id === AppState.editingPresetId);
+        if (preset) {
+            preset.name = name;
+            preset.sizes = JSON.parse(JSON.stringify(AppState.editingPresetSizes));
+            showNotification('预设已更新', 'success');
+        }
+    } else {
+        // Create new preset
+        const newPreset = {
+            id: 'preset-' + Date.now(),
+            name: name,
+            sizes: JSON.parse(JSON.stringify(AppState.editingPresetSizes))
+        };
+        AppState.sizePresets.push(newPreset);
+        showNotification('预设已创建', 'success');
+    }
+
+    // Close modal and refresh settings page
+    closePresetEditor();
+    renderSettingsPage();
 }
 
 function viewJobResult(jobId) {
