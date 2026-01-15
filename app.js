@@ -816,9 +816,19 @@ function renderSettingsPage() {
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                                 ${preset.sizes.map(size => `
-                                    <span style="padding: 6px 12px; background: var(--color-hover); border-radius: 6px; font-size: 13px; font-family: monospace;">
-                                        ${size.width}×${size.height}
-                                    </span>
+                                    <div style="padding: 8px 12px; background: var(--color-hover); border-radius: 6px; display: flex; flex-direction: column; gap: 2px;">
+                                        <span style="font-size: 13px; font-family: monospace; font-weight: 500;">
+                                            ${size.width}×${size.height}
+                                        </span>
+                                        ${size.maxSize ? `
+                                            <span style="font-size: 11px; color: var(--color-secondary); display: flex; align-items: center; gap: 3px;">
+                                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                                    <path d="M5 1V9M2.5 6.5L5 9L7.5 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                ≤ ${size.maxSize} KB
+                                            </span>
+                                        ` : ''}
+                                    </div>
                                 `).join('')}
                             </div>
                         </div>
@@ -1117,8 +1127,10 @@ function renderMultiSizeTool(canvas, settings) {
                 <p style="font-size: 14px; color: var(--color-secondary); margin-bottom: 20px; line-height: 1.6;">
                     选择预设的尺寸组合，或添加自定义尺寸${isFromMultilingual ? `。<strong>每种语言将生成所选的全部尺寸。</strong>` : '。'}
                 </p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-                    ${AppState.sizePresets.map(preset => `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+                    ${AppState.sizePresets.map(preset => {
+                        const sizesWithLimit = preset.sizes.filter(s => s.maxSize).length;
+                        return `
                         <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: var(--transition);"
                              onmouseover="this.style.borderColor='var(--color-primary)'"
                              onmouseout="this.style.borderColor='var(--color-border)'"
@@ -1127,9 +1139,20 @@ function renderMultiSizeTool(canvas, settings) {
                                 <input type="checkbox" id="preset-${preset.id}" style="width: 18px; height: 18px;">
                                 <h5 style="font-size: 15px; font-weight: 600;">${preset.name}</h5>
                             </div>
-                            <div style="font-size: 12px; color: var(--color-secondary);">${preset.sizes.length} 个尺寸</div>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <div style="font-size: 12px; color: var(--color-secondary);">${preset.sizes.length} 个尺寸</div>
+                                ${sizesWithLimit > 0 ? `
+                                    <div style="font-size: 11px; color: var(--color-secondary); display: flex; align-items: center; gap: 4px;">
+                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                            <path d="M5 1V9M2.5 6.5L5 9L7.5 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        ${sizesWithLimit} 个有大小限制
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
                 <button class="btn-secondary" style="margin-top: 16px; opacity: 0.5; cursor: not-allowed;" onclick="showSelectedSizes()" disabled>请先选择至少一个尺寸组合</button>
             </div>
@@ -1991,11 +2014,18 @@ function showSelectedSizes() {
             ${allSizes.map((size, index) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--color-hover); border-radius: 6px;">
                     <div>
-                        <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">${size.width} × ${size.height}</div>
-                        <div style="font-size: 12px; color: var(--color-secondary);">
-                            ${size.transparent ? '透明背景 • ' : ''}
-                            ${size.maxSize ? `最大 ${size.maxSize}KB • ` : ''}
-                            ${size.formats ? size.formats.join(', ').toUpperCase() : 'PNG'}
+                        <div style="font-size: 14px; font-weight: 500; font-family: monospace; margin-bottom: 4px;">${size.width} × ${size.height} px</div>
+                        <div style="font-size: 12px; color: var(--color-secondary); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            ${size.transparent ? '<span style="display: flex; align-items: center; gap: 3px;">✓ 透明背景</span>' : ''}
+                            ${size.maxSize ? `
+                                <span style="display: flex; align-items: center; gap: 3px;">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                        <path d="M6 1V11M3 8L6 11L9 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    ≤ ${size.maxSize} KB
+                                </span>
+                            ` : ''}
+                            ${size.formats ? `<span>格式: ${size.formats.join(', ').toUpperCase()}</span>` : ''}
                         </div>
                     </div>
                     <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="removeSize(${index})">移除</button>
@@ -2441,6 +2471,7 @@ function closePresetEditor() {
     document.getElementById('presetName').value = '';
     document.getElementById('newSizeWidth').value = '';
     document.getElementById('newSizeHeight').value = '';
+    document.getElementById('newSizeMaxSize').value = '';
     AppState.editingPresetId = null;
     AppState.editingPresetSizes = [];
 }
@@ -2459,9 +2490,21 @@ function renderPresetSizesList() {
 
     container.innerHTML = AppState.editingPresetSizes.map((size, index) => `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius);">
-            <span style="font-size: 14px; font-family: monospace; font-weight: 500;">
-                ${size.width} × ${size.height} px
-            </span>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 14px; font-family: monospace; font-weight: 500;">
+                    ${size.width} × ${size.height} px
+                </span>
+                ${size.maxSize ? `
+                    <span style="font-size: 12px; color: var(--color-secondary); display: flex; align-items: center; gap: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6 1V11M3 8L6 11L9 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        最大 ${size.maxSize} KB
+                    </span>
+                ` : `
+                    <span style="font-size: 12px; color: var(--color-secondary);">无大小限制</span>
+                `}
+            </div>
             <button class="btn-secondary" onclick="removeSizeFromPreset(${index})" style="padding: 6px 12px; font-size: 13px; color: #e74c3c; border-color: #e74c3c;">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right: 4px;">
                     <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -2475,13 +2518,20 @@ function renderPresetSizesList() {
 function addSizeToPreset() {
     const widthInput = document.getElementById('newSizeWidth');
     const heightInput = document.getElementById('newSizeHeight');
+    const maxSizeInput = document.getElementById('newSizeMaxSize');
 
     const width = parseInt(widthInput.value);
     const height = parseInt(heightInput.value);
+    const maxSize = maxSizeInput.value ? parseInt(maxSizeInput.value) : null;
 
     // Validation
     if (!width || !height || width <= 0 || height <= 0) {
         showNotification('请输入有效的宽度和高度', 'error');
+        return;
+    }
+
+    if (maxSize !== null && maxSize <= 0) {
+        showNotification('文件大小限制必须大于 0', 'error');
         return;
     }
 
@@ -2492,17 +2542,25 @@ function addSizeToPreset() {
         return;
     }
 
-    // Add size
-    AppState.editingPresetSizes.push({ width, height });
+    // Add size with all properties
+    AppState.editingPresetSizes.push({
+        width,
+        height,
+        maxSize,
+        transparent: false,
+        formats: ['png', 'jpg']
+    });
 
     // Clear inputs
     widthInput.value = '';
     heightInput.value = '';
+    maxSizeInput.value = '';
 
     // Re-render list
     renderPresetSizesList();
 
-    showNotification(`已添加尺寸 ${width}×${height}`, 'success');
+    const sizeInfo = maxSize ? `${width}×${height} (最大 ${maxSize} KB)` : `${width}×${height}`;
+    showNotification(`已添加尺寸 ${sizeInfo}`, 'success');
 }
 
 function removeSizeFromPreset(index) {
