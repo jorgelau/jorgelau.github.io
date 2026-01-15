@@ -94,6 +94,9 @@
                             </svg>
                         </button>
                     </div>
+                    <select class="sort-select" id="projectFilter" onchange="filterByProject(this.value)">
+                        <option value="">所有 Project</option>
+                    </select>
                     <button class="btn-secondary" id="filterBtn">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <path d="M1 4H15M3 8H13M6 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -184,6 +187,159 @@
             </div>
             <div class="asset-picker-body">
                 <div class="assets-grid" id="assetPickerGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Editor Modal -->
+    <div class="asset-picker-modal" id="projectEditorModal">
+        <div class="asset-picker-overlay" onclick="closeProjectEditor()"></div>
+        <div class="asset-picker-content" style="max-width: 600px; height: auto;">
+            <div class="asset-picker-header">
+                <h3 id="projectEditorTitle">新建 Project</h3>
+                <button class="close-btn" onclick="closeProjectEditor()">×</button>
+            </div>
+            <div class="asset-picker-body" style="padding: 32px;">
+                <div style="display: grid; gap: 24px;">
+                    <!-- Project Name -->
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">
+                            Project 名称
+                            <span style="color: #e74c3c;">*</span>
+                        </label>
+                        <input type="text" id="projectName" placeholder="例如：Summer Campaign 2024" style="width: 100%; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px;">
+                    </div>
+
+                    <!-- Project Description -->
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">
+                            描述
+                        </label>
+                        <textarea id="projectDescription" placeholder="简要描述此 Project 的用途..." style="width: 100%; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px; min-height: 100px; resize: vertical; font-family: inherit;"></textarea>
+                    </div>
+
+                    <div style="background: var(--color-hover); border-radius: var(--radius); padding: 16px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="flex-shrink: 0; margin-top: 2px;">
+                                <circle cx="10" cy="10" r="8" stroke="var(--color-secondary)" stroke-width="1.5"/>
+                                <path d="M10 6V10M10 14H10.01" stroke="var(--color-secondary)" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <div style="font-size: 13px; color: var(--color-secondary); line-height: 1.6;">
+                                <strong>提示：</strong> Project 用于组织和分类素材，方便团队协作和素材管理。你可以为不同的活动、产品线或客户创建独立的 Project。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border);">
+                    <button class="btn-secondary" onclick="closeProjectEditor()" style="flex: 1;">取消</button>
+                    <button class="btn-primary" onclick="saveProject()" style="flex: 1;">保存 Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Editor Modal -->
+    <div class="asset-picker-modal" id="promptEditorModal">
+        <div class="asset-picker-overlay" onclick="closePromptEditor()"></div>
+        <div class="asset-picker-content" style="max-width: 600px; height: auto;">
+            <div class="asset-picker-header">
+                <h3 id="promptEditorTitle">添加提示词</h3>
+                <button class="close-btn" onclick="closePromptEditor()">×</button>
+            </div>
+            <div class="asset-picker-body" style="padding: 32px;">
+                <div style="display: grid; gap: 24px;">
+                    <!-- Category Display -->
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--color-secondary);">分类</label>
+                        <div id="promptCategoryDisplay" style="padding: 10px 14px; background: var(--color-hover); border-radius: var(--radius); font-size: 14px; font-weight: 500;">
+                            多语言排版优化
+                        </div>
+                    </div>
+
+                    <!-- Prompt Text -->
+                    <div>
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">提示词内容 <span style="color: #e74c3c;">*</span></label>
+                        <textarea id="promptText"
+                                  placeholder="例如：文字居中显示，增加可读性..."
+                                  style="width: 100%; min-height: 100px; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Info Tip -->
+                    <div style="background: var(--color-hover); border-radius: var(--radius); padding: 16px; font-size: 13px; line-height: 1.6;">
+                        <div style="font-weight: 600; margin-bottom: 6px;">💡 提示</div>
+                        <div style="color: var(--color-secondary);">
+                            清晰简洁的提示词能帮助 AI 更准确地理解您的需求。建议：
+                            <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                                <li>描述具体的操作和效果</li>
+                                <li>避免使用过于模糊的词汇</li>
+                                <li>可以包含示例或对比说明</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border);">
+                    <button class="btn-secondary" onclick="closePromptEditor()" style="flex: 1;">取消</button>
+                    <button class="btn-primary" onclick="savePrompt()" style="flex: 1;">保存提示词</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Selector Modal -->
+    <div class="asset-picker-modal" id="promptSelectorModal">
+        <div class="asset-picker-overlay" onclick="closePromptSelector()"></div>
+        <div class="asset-picker-content" style="max-width: 700px; height: auto; max-height: 80vh;">
+            <div class="asset-picker-header">
+                <h3 id="promptSelectorTitle">选择提示词</h3>
+                <button class="close-btn" onclick="closePromptSelector()">×</button>
+            </div>
+            <div class="asset-picker-body" style="padding: 32px; overflow-y: auto;">
+                <div style="display: grid; gap: 24px;">
+                    <!-- Preset Prompts Section -->
+                    <div id="presetPromptsSection">
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-primary);">预设提示词</div>
+                        <div id="presetPromptsList" style="display: grid; gap: 8px;">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Favorite Prompts Section -->
+                    <div id="favoritePromptsSection" style="display: none;">
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-primary); display: flex; align-items: center; gap: 6px;">
+                            <span>⭐</span>
+                            <span>常用提示词</span>
+                        </div>
+                        <div id="favoritePromptsList" style="display: grid; gap: 8px;">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Recent User Prompts Section -->
+                    <div id="recentPromptsSection" style="display: none;">
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-primary);">最近使用</div>
+                        <div id="recentPromptsList" style="display: grid; gap: 8px;">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Custom Input Section -->
+                    <div style="border-top: 1px solid var(--color-border); padding-top: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--color-primary);">自定义提示词</label>
+                        <textarea id="customPromptInput"
+                                  placeholder="输入您的提示词，或从上方选择..."
+                                  style="width: 100%; min-height: 80px; padding: 12px 16px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-border);">
+                    <button class="btn-secondary" onclick="closePromptSelector()" style="flex: 1;">取消</button>
+                    <button class="btn-primary" onclick="confirmPromptSelection()" style="flex: 1;">确定使用</button>
+                </div>
             </div>
         </div>
     </div>

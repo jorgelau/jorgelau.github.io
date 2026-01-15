@@ -13,6 +13,8 @@ const AppState = {
             id: 'asset-001',
             title: 'Summer Sale Banner',
             type: 'multilingual',
+            projectId: 'project-001',
+            derivedFrom: null, // Original asset
             originalImage: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800',
             languages: ['EN', 'AR', 'FR', 'ES', 'ZH'],
             tags: ['banner', 'sale', 'summer'],
@@ -40,6 +42,8 @@ const AppState = {
             id: 'asset-002',
             title: 'Product Showcase',
             type: 'no-language',
+            projectId: 'project-002',
+            derivedFrom: null, // Original asset
             originalImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
             tags: ['product', 'minimal', 'white'],
             creator: 'John Smith',
@@ -57,6 +61,8 @@ const AppState = {
             id: 'asset-003',
             title: 'Holiday Promotion',
             type: 'multilingual',
+            projectId: 'project-001',
+            derivedFrom: 'asset-001', // Modified from Summer Sale Banner
             originalImage: 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=800',
             languages: ['EN', 'ZH'],
             tags: ['holiday', 'promotion', 'festive'],
@@ -78,6 +84,8 @@ const AppState = {
             id: 'asset-004',
             title: 'Abstract Background',
             type: 'no-language',
+            projectId: 'project-003',
+            derivedFrom: null, // Original asset
             originalImage: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800',
             tags: ['abstract', 'background', 'colorful'],
             creator: 'Bob Wilson',
@@ -94,6 +102,8 @@ const AppState = {
             id: 'asset-005',
             title: 'New Collection Launch',
             type: 'multilingual',
+            projectId: 'project-002',
+            derivedFrom: 'asset-002', // Modified from Product Showcase
             originalImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800',
             languages: ['EN', 'FR', 'ES'],
             tags: ['collection', 'fashion', 'launch'],
@@ -112,6 +122,8 @@ const AppState = {
             id: 'asset-006',
             title: 'Tech Gadget Photo',
             type: 'no-language',
+            projectId: 'project-003',
+            derivedFrom: 'asset-004', // Modified from Abstract Background
             originalImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
             tags: ['tech', 'gadget', 'modern'],
             creator: 'Mike Johnson',
@@ -177,6 +189,67 @@ const AppState = {
         }
     ],
 
+    // Projects
+    projects: [
+        {
+            id: 'project-001',
+            name: 'Summer Campaign 2024',
+            description: '夏季营销活动相关素材',
+            createdAt: '2024-01-01'
+        },
+        {
+            id: 'project-002',
+            name: 'Product Launch',
+            description: '新产品发布会素材',
+            createdAt: '2024-01-05'
+        },
+        {
+            id: 'project-003',
+            name: 'Brand Refresh',
+            description: '品牌升级相关设计素材',
+            createdAt: '2024-01-10'
+        }
+    ],
+
+    // Prompt Library
+    presetPrompts: {
+        'multilingual-layout': [
+            { id: 'ml-preset-1', text: '文字居中显示', category: 'multilingual-layout' },
+            { id: 'ml-preset-2', text: '放大字体，增加可读性', category: 'multilingual-layout' },
+            { id: 'ml-preset-3', text: '增加文字边距，留出呼吸空间', category: 'multilingual-layout' },
+            { id: 'ml-preset-4', text: '文字左对齐，适合长段落', category: 'multilingual-layout' },
+            { id: 'ml-preset-5', text: '使用粗体强调关键信息', category: 'multilingual-layout' }
+        ],
+        'size-adjustment': [
+            { id: 'sa-preset-1', text: '居中显示主体内容', category: 'size-adjustment' },
+            { id: 'sa-preset-2', text: '放大主体，填充画面', category: 'size-adjustment' },
+            { id: 'sa-preset-3', text: '留出上下边距，保持呼吸感', category: 'size-adjustment' },
+            { id: 'sa-preset-4', text: '主体左对齐，右侧留白', category: 'size-adjustment' },
+            { id: 'sa-preset-5', text: '等比例缩放，保持完整', category: 'size-adjustment' }
+        ],
+        'translation': [
+            { id: 'tr-preset-1', text: '保持语气正式、专业', category: 'translation' },
+            { id: 'tr-preset-2', text: '使用轻松、口语化的表达', category: 'translation' },
+            { id: 'tr-preset-3', text: '简洁明了，适合营销', category: 'translation' },
+            { id: 'tr-preset-4', text: '保留原文情感和语调', category: 'translation' }
+        ]
+    },
+
+    // User prompt history
+    userPrompts: [],
+    // Structure: { id, text, category, usageCount, createdAt, lastUsedAt }
+
+    // Favorite prompt IDs
+    favoritePromptIds: [],
+
+    // Prompt editor state
+    editingPromptCategory: null,
+    editingPromptId: null,
+
+    // Prompt selector state
+    promptSelectorCategory: null,
+    promptSelectorCallback: null,
+
     // Filter state
     filters: {
         tags: [],
@@ -188,7 +261,8 @@ const AppState = {
         transparent: null,
         liked: false,
         myCreations: false,
-        timeRange: null
+        timeRange: null,
+        project: null // Current project filter
     },
 
     // View state
@@ -201,6 +275,8 @@ const AppState = {
     // Multi-size cropping state
     currentCroppingSizes: [],
     currentSourceImage: null,
+    currentCroppingLanguage: null, // Current language being previewed in cropping
+    multilingualCroppingParams: {}, // Store cropping params per language: {EN: [...sizes], AR: [...sizes]}
 
     // Multilingual state
     currentMultilingualAsset: null,
@@ -215,7 +291,10 @@ const AppState = {
     editingPresetSizes: [],
 
     // Multi-size selection state
-    selectedSizesForGeneration: []
+    selectedSizesForGeneration: [],
+
+    // Project editor state
+    editingProjectId: null
 };
 
 // ============================================================
@@ -324,11 +403,43 @@ function renderAssetLibrary() {
             toggleLike(btn.dataset.id);
         });
     });
+
+    // Populate project filter dropdown
+    populateProjectFilter();
+}
+
+function populateProjectFilter() {
+    const projectFilter = document.getElementById('projectFilter');
+    if (!projectFilter) return;
+
+    const currentValue = AppState.filters.project;
+
+    // Generate options
+    const options = [
+        '<option value="">所有 Project</option>',
+        ...AppState.projects.map(project => {
+            const assetsCount = AppState.assets.filter(a => a.projectId === project.id).length;
+            const selected = currentValue === project.id ? 'selected' : '';
+            return `<option value="${project.id}" ${selected}>${project.name} (${assetsCount})</option>`;
+        })
+    ];
+
+    projectFilter.innerHTML = options.join('');
+}
+
+function filterByProject(projectId) {
+    AppState.filters.project = projectId || null;
+    renderAssetLibrary();
 }
 
 // Filter assets based on current filter state
 function filterAssets(assets) {
     return assets.filter(asset => {
+        // Project filter
+        if (AppState.filters.project && asset.projectId !== AppState.filters.project) {
+            return false;
+        }
+
         // Tags filter
         if (AppState.filters.tags.length > 0) {
             const hasTag = AppState.filters.tags.some(tag =>
@@ -384,6 +495,42 @@ function filterAssets(assets) {
 }
 
 // Show asset detail page
+/**
+ * Generate HTML for "Derived From" section
+ */
+function renderDerivedFromSection(asset) {
+    if (!asset.derivedFrom) {
+        return ''; // No source asset
+    }
+
+    const sourceAsset = AppState.assets.find(a => a.id === asset.derivedFrom);
+    if (!sourceAsset) {
+        return ''; // Source asset not found
+    }
+
+    return `
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 13px; color: var(--color-secondary); margin-bottom: 8px;">修改自</div>
+            <div onclick="showAssetDetail('${sourceAsset.id}')" style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius); cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'" onmouseout="this.style.borderColor='var(--color-border)'; this.style.boxShadow='none'">
+                <div style="width: 60px; height: 60px; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
+                    <img src="${sourceAsset.originalImage}" style="width: 100%; height: 100%; object-fit: cover;" alt="${sourceAsset.title}">
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${sourceAsset.title}</div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--color-secondary);">
+                        <span>${sourceAsset.type === 'multilingual' ? '多语言' : '无语言'}</span>
+                        <span>•</span>
+                        <span>${sourceAsset.creator}</span>
+                    </div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink: 0; color: var(--color-secondary);">
+                    <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+    `;
+}
+
 function showAssetDetail(assetId) {
     const asset = AppState.assets.find(a => a.id === assetId);
     if (!asset) return;
@@ -455,6 +602,8 @@ function showAssetDetail(assetId) {
                             <div style="font-size: 13px; color: var(--color-secondary); margin-bottom: 4px;">类型</div>
                             <div style="display: inline-block; padding: 6px 12px; background: var(--color-hover); border-radius: 6px; font-size: 14px;">无语言素材</div>
                         </div>
+
+                        ${renderDerivedFromSection(asset)}
 
                         <div style="margin-bottom: 20px;">
                             <div style="font-size: 13px; color: var(--color-secondary); margin-bottom: 4px;">创作人</div>
@@ -565,6 +714,8 @@ function showAssetDetail(assetId) {
                                 ${asset.languages.map(lang => `<span class="chip">${lang}</span>`).join('')}
                             </div>
                         </div>
+
+                        ${renderDerivedFromSection(asset)}
 
                         <div style="margin-bottom: 20px;">
                             <div style="font-size: 13px; color: var(--color-secondary); margin-bottom: 4px;">创作人</div>
@@ -805,6 +956,133 @@ function renderSettingsPage() {
         </div>
 
         <div style="max-width: 800px;">
+            <!-- Project Management -->
+            <div style="background: var(--color-surface); border-radius: var(--radius); padding: 30px; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">Project 管理</h3>
+                <div style="display: grid; gap: 16px;">
+                    ${AppState.projects.map(project => `
+                        <div style="border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">${project.name}</h4>
+                                    <p style="font-size: 13px; color: var(--color-secondary); line-height: 1.5;">${project.description}</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick="editProject('${project.id}')">编辑</button>
+                                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick="deleteProject('${project.id}')">删除</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                    <circle cx="7" cy="7" r="5.5" stroke="var(--color-secondary)" stroke-width="1.5"/>
+                                    <path d="M7 4V7L9 9" stroke="var(--color-secondary)" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span style="font-size: 12px; color: var(--color-secondary);">创建于 ${formatDate(project.createdAt)}</span>
+                                <span style="font-size: 12px; color: var(--color-secondary);">•</span>
+                                <span style="font-size: 12px; color: var(--color-secondary);">
+                                    ${AppState.assets.filter(a => a.projectId === project.id).length} 个素材
+                                </span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="btn-primary" style="margin-top: 20px;" onclick="createNewProject()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    新建 Project
+                </button>
+            </div>
+
+            <!-- Prompt Library Management -->
+            <div style="background: var(--color-surface); border-radius: var(--radius); padding: 30px; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">提示词库管理</h3>
+
+                ${(() => {
+                    const categories = [
+                        { key: 'multilingual-layout', label: '多语言排版优化', icon: '📝' },
+                        { key: 'size-adjustment', label: '尺寸裁剪调整', icon: '✂️' },
+                        { key: 'translation', label: 'AI 翻译', icon: '🌐' }
+                    ];
+
+                    return categories.map(cat => {
+                        const presetPrompts = AppState.presetPrompts[cat.key] || [];
+                        const userPrompts = AppState.userPrompts.filter(p => p.category === cat.key);
+
+                        return `
+                            <div style="border: 1px solid var(--color-border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h4 style="font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <span>${cat.icon}</span>
+                                        <span>${cat.label}</span>
+                                    </h4>
+                                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick="addPresetPrompt('${cat.key}')">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </svg>
+                                        添加预设提示词
+                                    </button>
+                                </div>
+
+                                <!-- Preset Prompts -->
+                                <div style="margin-bottom: 20px;">
+                                    <div style="font-size: 13px; font-weight: 600; color: var(--color-secondary); margin-bottom: 8px;">预设提示词</div>
+                                    ${presetPrompts.length > 0 ? `
+                                        <div style="display: grid; gap: 8px;">
+                                            ${presetPrompts.map(prompt => `
+                                                <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--color-hover); border-radius: 6px;">
+                                                    <span style="flex: 1; font-size: 13px; color: var(--color-primary);">${prompt.text}</span>
+                                                    <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="editPresetPrompt('${cat.key}', '${prompt.id}')">编辑</button>
+                                                    <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="deletePresetPrompt('${cat.key}', '${prompt.id}')">删除</button>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : `
+                                        <div style="padding: 16px; background: var(--color-hover); border-radius: 6px; text-align: center; font-size: 13px; color: var(--color-secondary);">
+                                            暂无预设提示词
+                                        </div>
+                                    `}
+                                </div>
+
+                                <!-- User Prompts -->
+                                ${userPrompts.length > 0 ? `
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 600; color: var(--color-secondary); margin-bottom: 8px;">我的提示词</div>
+                                        <div style="display: grid; gap: 8px;">
+                                            ${userPrompts.map(prompt => {
+                                                const isFavorite = AppState.favoritePromptIds.includes(prompt.id);
+                                                return `
+                                                    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: white; border: 1px solid var(--color-border); border-radius: 6px;">
+                                                        <button onclick="toggleFavoritePrompt('${prompt.id}')" style="background: none; border: none; cursor: pointer; padding: 0; font-size: 16px;">
+                                                            ${isFavorite ? '⭐' : '☆'}
+                                                        </button>
+                                                        <span style="flex: 1; font-size: 13px; color: var(--color-primary);">${prompt.text}</span>
+                                                        <span style="font-size: 12px; color: var(--color-secondary); padding: 2px 6px; background: var(--color-hover); border-radius: 4px;">
+                                                            ${prompt.usageCount} 次
+                                                        </span>
+                                                        <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="deleteUserPrompt('${prompt.id}')">删除</button>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                })()}
+
+                <div style="background: var(--color-hover); border-radius: var(--radius); padding: 16px; margin-top: 16px;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">💡 提示词库使用说明</div>
+                    <ul style="font-size: 12px; color: var(--color-secondary); line-height: 1.8; margin: 0; padding-left: 20px;">
+                        <li>预设提示词：团队预先配置的常用提示词，可直接使用</li>
+                        <li>我的提示词：自动记录您输入过的提示词，显示使用次数</li>
+                        <li>常用提示词：点击星标 ⭐ 标记为常用，方便快速选择</li>
+                        <li>在需要输入提示词时，可从提示词库中选择或手动输入</li>
+                    </ul>
+                </div>
+            </div>
+
             <div style="background: var(--color-surface); border-radius: var(--radius); padding: 30px; margin-bottom: 20px;">
                 <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">尺寸预设管理</h3>
                 <div style="display: grid; gap: 16px;">
@@ -1878,15 +2156,15 @@ function backToMultilingualEdit() {
 
 function aiAdjustMultilingualLayout() {
     const currentLang = AppState.currentPreviewLanguage;
-    const prompt = window.prompt(`为 ${currentLang} 语言版本输入 AI 排版优化提示\n例如：文字居中、放大字体、增加边距等`);
 
-    if (prompt) {
+    // Open prompt selector instead of window.prompt
+    openPromptSelector('multilingual-layout', (promptText) => {
         showNotification('AI 正在优化排版...');
         setTimeout(() => {
             showNotification('排版优化完成！');
-            // In real implementation, this would update the preview
+            // In real implementation, this would update the preview based on promptText
         }, 1500);
-    }
+    });
 }
 
 function proceedToMultiSizeFromMultilingual() {
@@ -2189,6 +2467,21 @@ function proceedToCropping() {
         AppState.currentSourceImage = 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800';
     }
 
+    // Initialize multilingual cropping state
+    if (AppState.isMultilingualFlow && AppState.currentMultilingualLanguages.length > 0) {
+        // Set first language as current
+        AppState.currentCroppingLanguage = AppState.currentMultilingualLanguages[0];
+
+        // Initialize cropping params for each language with deep copy of sizes
+        AppState.multilingualCroppingParams = {};
+        AppState.currentMultilingualLanguages.forEach(lang => {
+            AppState.multilingualCroppingParams[lang] = JSON.parse(JSON.stringify(allSizes));
+        });
+    } else {
+        AppState.currentCroppingLanguage = null;
+        AppState.multilingualCroppingParams = {};
+    }
+
     // Render cropping interface
     renderCroppingInterface();
 }
@@ -2215,7 +2508,7 @@ function renderCroppingInterface() {
 
             ${isMultilingual ? `
             <!-- Multilingual Info -->
-            <div style="background: linear-gradient(135deg, var(--color-accent) 0%, #c89968 100%); border-radius: var(--radius); padding: 20px; margin-bottom: 30px; color: white;">
+            <div style="background: linear-gradient(135deg, var(--color-accent) 0%, #c89968 100%); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; color: white;">
                 <div style="display: flex; gap: 20px; align-items: center;">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="flex-shrink: 0;">
                         <circle cx="24" cy="24" r="20" stroke="white" stroke-width="2"/>
@@ -2223,13 +2516,67 @@ function renderCroppingInterface() {
                     </svg>
                     <div style="flex: 1;">
                         <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">多语言模式</div>
-                        <div style="font-size: 13px; opacity: 0.9;">正在处理 ${AppState.currentMultilingualLanguages.length} 种语言版本</div>
+                        <div style="font-size: 13px; opacity: 0.9;">正在处理 ${AppState.currentMultilingualLanguages.length} 种语言版本 • 为每种语言独立调整裁剪参数</div>
                         <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
                             ${AppState.currentMultilingualLanguages.map(lang => `
                                 <span style="padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 12px; font-size: 12px; font-weight: 500;">${lang}: ${AppState.currentMultilingualTexts[lang]}</span>
                             `).join('')}
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Language Switcher -->
+            <div style="background: white; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px; margin-bottom: 30px;">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--color-primary);">切换语言预览</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    ${AppState.currentMultilingualLanguages.map(lang => {
+                        const languageColors = {
+                            'EN': '#3498db',
+                            'AR': '#2ecc71',
+                            'FR': '#e74c3c',
+                            'ZH': '#f39c12',
+                            'ES': '#9b59b6'
+                        };
+                        const bgColor = languageColors[lang] || '#6b6b6b';
+                        const isActive = AppState.currentCroppingLanguage === lang;
+
+                        return `
+                            <button
+                                onclick="switchCroppingLanguage('${lang}')"
+                                style="
+                                    padding: 14px 20px;
+                                    border: 2px solid ${isActive ? bgColor : 'var(--color-border)'};
+                                    background: ${isActive ? bgColor : 'white'};
+                                    color: ${isActive ? 'white' : 'var(--color-primary)'};
+                                    border-radius: var(--radius);
+                                    cursor: pointer;
+                                    transition: all 0.2s ease;
+                                    font-weight: ${isActive ? '600' : '500'};
+                                    font-size: 14px;
+                                    position: relative;
+                                    box-shadow: ${isActive ? 'var(--shadow-md)' : 'none'};
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: flex-start;
+                                    gap: 4px;
+                                "
+                            >
+                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                    <span style="font-size: 16px; font-weight: 600;">${lang}</span>
+                                    ${isActive ? `<span style="font-size: 18px;">✓</span>` : ''}
+                                </div>
+                                <span style="font-size: 12px; opacity: 0.9;">${AppState.currentMultilingualTexts[lang]}</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="margin-top: 12px; padding: 12px; background: var(--color-hover); border-radius: 6px; font-size: 12px; color: var(--color-secondary);">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                        <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M7 4V7L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    当前正在为 <strong>${AppState.currentCroppingLanguage}</strong> 语言调整裁剪参数。每种语言可以独立设置缩放和位置。
                 </div>
             </div>
             ` : ''}
@@ -2268,7 +2615,18 @@ function renderCroppingInterface() {
 }
 
 function renderCroppingCards() {
-    return AppState.currentCroppingSizes.map((size, index) => {
+    // Determine which sizes to render (from multilingual params or regular state)
+    const isMultilingual = AppState.isMultilingualFlow && AppState.currentCroppingLanguage;
+    const sizesToRender = isMultilingual
+        ? AppState.multilingualCroppingParams[AppState.currentCroppingLanguage]
+        : AppState.currentCroppingSizes;
+
+    // Determine preview image source
+    const previewImageSrc = isMultilingual && AppState.currentMultilingualPreviews[AppState.currentCroppingLanguage]
+        ? AppState.currentMultilingualPreviews[AppState.currentCroppingLanguage]
+        : AppState.currentSourceImage;
+
+    return sizesToRender.map((size, index) => {
         const aspectRatio = size.width / size.height;
         return `
             <div class="cropping-card" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px;">
@@ -2287,7 +2645,7 @@ function renderCroppingCards() {
                 <!-- Preview -->
                 <div style="position: relative; width: 100%; aspect-ratio: ${aspectRatio}; background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 10px 10px; border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; border: 2px solid var(--color-border);">
                     <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <img src="${AppState.currentSourceImage}"
+                        <img src="${previewImageSrc}"
                              id="preview-${index}"
                              style="width: auto; height: auto; max-width: none; transform: scale(${size.scale / 100}) translate(${size.offsetX}px, ${size.offsetY}px); transition: transform 0.3s ease;"
                              alt="Preview">
@@ -2295,6 +2653,11 @@ function renderCroppingCards() {
                     <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">
                         ${size.width}×${size.height}
                     </div>
+                    ${isMultilingual ? `
+                    <div style="position: absolute; top: 8px; left: 8px; background: rgba(52, 152, 219, 0.9); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+                        ${AppState.currentCroppingLanguage}
+                    </div>
+                    ` : ''}
                 </div>
 
                 <!-- Controls -->
@@ -2357,12 +2720,23 @@ function renderCroppingCards() {
 
 function updateCropping(index, property, value) {
     const numValue = parseFloat(value);
-    AppState.currentCroppingSizes[index][property] = numValue;
+
+    // Update the appropriate state based on multilingual mode
+    const isMultilingual = AppState.isMultilingualFlow && AppState.currentCroppingLanguage;
+    if (isMultilingual) {
+        // Update current language's cropping params
+        AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index][property] = numValue;
+    } else {
+        // Update regular cropping state
+        AppState.currentCroppingSizes[index][property] = numValue;
+    }
 
     // Update preview
     const preview = document.getElementById(`preview-${index}`);
     if (preview) {
-        const size = AppState.currentCroppingSizes[index];
+        const size = isMultilingual
+            ? AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index]
+            : AppState.currentCroppingSizes[index];
         preview.style.transform = `scale(${size.scale / 100}) translate(${size.offsetX}px, ${size.offsetY}px)`;
     }
 
@@ -2377,10 +2751,29 @@ function updateCropping(index, property, value) {
     }
 }
 
+function switchCroppingLanguage(language) {
+    if (AppState.currentCroppingLanguage === language) return;
+
+    AppState.currentCroppingLanguage = language;
+    renderCroppingInterface();
+
+    showNotification(`已切换到 ${language} 语言预览`, 'success');
+}
+
 function resetCropping(index) {
-    AppState.currentCroppingSizes[index].scale = 100;
-    AppState.currentCroppingSizes[index].offsetX = 0;
-    AppState.currentCroppingSizes[index].offsetY = 0;
+    const isMultilingual = AppState.isMultilingualFlow && AppState.currentCroppingLanguage;
+
+    if (isMultilingual) {
+        // Reset current language's params
+        AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index].scale = 100;
+        AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index].offsetX = 0;
+        AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index].offsetY = 0;
+    } else {
+        // Reset regular params
+        AppState.currentCroppingSizes[index].scale = 100;
+        AppState.currentCroppingSizes[index].offsetX = 0;
+        AppState.currentCroppingSizes[index].offsetY = 0;
+    }
 
     // Re-render just this card
     renderCroppingInterface();
@@ -2388,39 +2781,69 @@ function resetCropping(index) {
 }
 
 function aiAdjustSize(index) {
-    const size = AppState.currentCroppingSizes[index];
-    const prompt = window.prompt(`为 ${size.width}×${size.height} 尺寸输入 AI 调整提示\n例如：居中显示、放大主体、留出边距等`);
+    const isMultilingual = AppState.isMultilingualFlow && AppState.currentCroppingLanguage;
+    const size = isMultilingual
+        ? AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index]
+        : AppState.currentCroppingSizes[index];
 
-    if (prompt) {
+    // Open prompt selector instead of window.prompt
+    openPromptSelector('size-adjustment', (promptText) => {
         showNotification('AI 正在调整...');
         // Simulate AI adjustment
         setTimeout(() => {
             // Random adjustment for demo
-            AppState.currentCroppingSizes[index].scale = 100 + Math.random() * 40 - 20;
-            AppState.currentCroppingSizes[index].offsetX = Math.random() * 40 - 20;
-            AppState.currentCroppingSizes[index].offsetY = Math.random() * 40 - 20;
+            const targetSize = isMultilingual
+                ? AppState.multilingualCroppingParams[AppState.currentCroppingLanguage][index]
+                : AppState.currentCroppingSizes[index];
+
+            targetSize.scale = 100 + Math.random() * 40 - 20;
+            targetSize.offsetX = Math.random() * 40 - 20;
+            targetSize.offsetY = Math.random() * 40 - 20;
+
             renderCroppingInterface();
             showNotification('AI 调整完成！');
+            // In real implementation, this would use promptText to guide the adjustment
         }, 1500);
-    }
+    });
 }
 
 function applyCropToAll() {
-    if (AppState.currentCroppingSizes.length === 0) return;
+    const isMultilingual = AppState.isMultilingualFlow && AppState.currentCroppingLanguage;
 
-    const firstSize = AppState.currentCroppingSizes[0];
-    const { scale, offsetX, offsetY } = firstSize;
+    if (isMultilingual) {
+        const sizes = AppState.multilingualCroppingParams[AppState.currentCroppingLanguage];
+        if (sizes.length === 0) return;
 
-    AppState.currentCroppingSizes.forEach((size, index) => {
-        if (index > 0) {
-            size.scale = scale;
-            size.offsetX = offsetX;
-            size.offsetY = offsetY;
-        }
-    });
+        const firstSize = sizes[0];
+        const { scale, offsetX, offsetY } = firstSize;
 
-    renderCroppingInterface();
-    showNotification('已同步第一个尺寸的裁剪参数到所有尺寸');
+        sizes.forEach((size, index) => {
+            if (index > 0) {
+                size.scale = scale;
+                size.offsetX = offsetX;
+                size.offsetY = offsetY;
+            }
+        });
+
+        renderCroppingInterface();
+        showNotification(`已同步第一个尺寸的裁剪参数到 ${AppState.currentCroppingLanguage} 语言的所有尺寸`);
+    } else {
+        if (AppState.currentCroppingSizes.length === 0) return;
+
+        const firstSize = AppState.currentCroppingSizes[0];
+        const { scale, offsetX, offsetY } = firstSize;
+
+        AppState.currentCroppingSizes.forEach((size, index) => {
+            if (index > 0) {
+                size.scale = scale;
+                size.offsetX = offsetX;
+                size.offsetY = offsetY;
+            }
+        });
+
+        renderCroppingInterface();
+        showNotification('已同步第一个尺寸的裁剪参数到所有尺寸');
+    }
 }
 
 function backToSizeSelection() {
@@ -2448,6 +2871,89 @@ function processAllSizes() {
 function renderProcessingResults() {
     const canvas = document.getElementById('toolCanvas');
 
+    // Check if multilingual mode
+    const isMultilingual = AppState.isMultilingualFlow && AppState.currentMultilingualLanguages.length > 0;
+
+    // Calculate total images
+    let totalImages = 0;
+    let resultCards = [];
+
+    if (isMultilingual) {
+        // Generate language × size combinations
+        AppState.currentMultilingualLanguages.forEach(lang => {
+            const sizes = AppState.multilingualCroppingParams[lang];
+            sizes.forEach((size, sizeIndex) => {
+                totalImages++;
+                const previewImage = AppState.currentMultilingualPreviews[lang] || AppState.currentSourceImage;
+
+                const languageColors = {
+                    'EN': '#3498db',
+                    'AR': '#2ecc71',
+                    'FR': '#e74c3c',
+                    'ZH': '#f39c12',
+                    'ES': '#9b59b6'
+                };
+                const langColor = languageColors[lang] || '#6b6b6b';
+
+                resultCards.push(`
+                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 16px;">
+                        <div style="width: 100%; aspect-ratio: ${size.width / size.height}; background: linear-gradient(135deg, #f5f5f0 0%, #e5e5e0 100%); border-radius: var(--radius); margin-bottom: 12px; position: relative; overflow: hidden;">
+                            <img src="${previewImage}" style="width: 100%; height: 100%; object-fit: cover;" alt="${lang} ${size.width}×${size.height}">
+                            <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+                                ${size.width}×${size.height}
+                            </div>
+                            <div style="position: absolute; top: 8px; left: 8px; background: ${langColor}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+                                ${lang}
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">${size.width} × ${size.height}</div>
+                        <div style="font-size: 12px; color: var(--color-secondary); margin-bottom: 8px;">
+                            ${lang}: ${AppState.currentMultilingualTexts[lang]}
+                        </div>
+                        <div style="font-size: 12px; color: var(--color-secondary); margin-bottom: 12px;">
+                            ${size.formats ? size.formats[0].toUpperCase() : 'PNG'} • ${size.maxSize ? `${size.maxSize}KB` : '自动'}
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-secondary" style="flex: 1; padding: 6px 12px; font-size: 12px;" onclick="showNotification('下载中...')">下载</button>
+                            <button class="btn-secondary" style="padding: 6px 8px; font-size: 12px;" onclick="copyToClipboard('cdn://result/${lang}_${size.width}x${size.height}.png')">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                    <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M2 10V3C2 2.44772 2.44772 2 3 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+        });
+    } else {
+        // Regular single language mode
+        totalImages = AppState.currentCroppingSizes.length;
+        resultCards = AppState.currentCroppingSizes.map((size, index) => `
+            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 16px;">
+                <div style="width: 100%; aspect-ratio: ${size.width / size.height}; background: linear-gradient(135deg, #f5f5f0 0%, #e5e5e0 100%); border-radius: var(--radius); margin-bottom: 12px; position: relative; overflow: hidden;">
+                    <img src="${AppState.currentSourceImage}" style="width: 100%; height: 100%; object-fit: cover;" alt="${size.width}×${size.height}">
+                    <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+                        ${size.width}×${size.height}
+                    </div>
+                </div>
+                <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">${size.width} × ${size.height}</div>
+                <div style="font-size: 12px; color: var(--color-secondary); margin-bottom: 12px;">
+                    ${size.formats ? size.formats[0].toUpperCase() : 'PNG'} • ${size.maxSize ? `${size.maxSize}KB` : '自动'}
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" style="flex: 1; padding: 6px 12px; font-size: 12px;" onclick="showNotification('下载中...')">下载</button>
+                    <button class="btn-secondary" style="padding: 6px 8px; font-size: 12px;" onclick="copyToClipboard('cdn://result/${size.width}x${size.height}.png')">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M2 10V3C2 2.44772 2.44772 2 3 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `);
+    }
+
     canvas.innerHTML = `
         <div style="width: 100%; max-width: 1000px;">
             <div style="text-align: center; margin-bottom: 40px;">
@@ -2457,34 +2963,17 @@ function renderProcessingResults() {
                     </svg>
                 </div>
                 <h3 style="font-size: 28px; font-weight: 500; margin-bottom: 12px;">处理完成！</h3>
-                <p style="font-size: 16px; color: var(--color-secondary);">已成功生成 ${AppState.currentCroppingSizes.length} 个尺寸的图片</p>
+                <p style="font-size: 16px; color: var(--color-secondary);">
+                    ${isMultilingual
+                        ? `已成功生成 ${AppState.currentMultilingualLanguages.length} 种语言 × ${AppState.multilingualCroppingParams[AppState.currentMultilingualLanguages[0]].length} 个尺寸，共 ${totalImages} 张图片`
+                        : `已成功生成 ${totalImages} 个尺寸的图片`
+                    }
+                </p>
             </div>
 
             <!-- Results Grid -->
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                ${AppState.currentCroppingSizes.map((size, index) => `
-                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 16px;">
-                        <div style="width: 100%; aspect-ratio: ${size.width / size.height}; background: linear-gradient(135deg, #f5f5f0 0%, #e5e5e0 100%); border-radius: var(--radius); margin-bottom: 12px; position: relative; overflow: hidden;">
-                            <img src="${AppState.currentSourceImage}" style="width: 100%; height: 100%; object-fit: cover;" alt="${size.width}×${size.height}">
-                            <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;">
-                                ${size.width}×${size.height}
-                            </div>
-                        </div>
-                        <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">${size.width} × ${size.height}</div>
-                        <div style="font-size: 12px; color: var(--color-secondary); margin-bottom: 12px;">
-                            ${size.formats ? size.formats[0].toUpperCase() : 'PNG'} • ${size.maxSize ? `${size.maxSize}KB` : '自动'}
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn-secondary" style="flex: 1; padding: 6px 12px; font-size: 12px;" onclick="showNotification('下载中...')">下载</button>
-                            <button class="btn-secondary" style="padding: 6px 8px; font-size: 12px;" onclick="copyToClipboard('cdn://result/${size.width}x${size.height}.png')">
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                    <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                                    <path d="M2 10V3C2 2.44772 2.44772 2 3 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
+                ${resultCards.join('')}
             </div>
 
             <!-- Actions -->
@@ -2716,6 +3205,437 @@ function savePreset() {
     // Close modal and refresh settings page
     closePresetEditor();
     renderSettingsPage();
+}
+
+// ============================================================
+// Project Management Functions
+// ============================================================
+
+function createNewProject() {
+    // Reset editing state
+    AppState.editingProjectId = null;
+
+    // Open modal with empty fields
+    document.getElementById('projectEditorTitle').textContent = '新建 Project';
+    document.getElementById('projectName').value = '';
+    document.getElementById('projectDescription').value = '';
+
+    // Show modal
+    document.getElementById('projectEditorModal').classList.add('open');
+}
+
+function editProject(projectId) {
+    const project = AppState.projects.find(p => p.id === projectId);
+    if (!project) {
+        showNotification('Project 不存在', 'error');
+        return;
+    }
+
+    // Set editing state
+    AppState.editingProjectId = projectId;
+
+    // Open modal and populate fields
+    document.getElementById('projectEditorTitle').textContent = '编辑 Project';
+    document.getElementById('projectName').value = project.name;
+    document.getElementById('projectDescription').value = project.description;
+
+    // Show modal
+    document.getElementById('projectEditorModal').classList.add('open');
+}
+
+function saveProject() {
+    const name = document.getElementById('projectName').value.trim();
+    const description = document.getElementById('projectDescription').value.trim();
+
+    // Validation
+    if (!name) {
+        showNotification('请输入 Project 名称', 'error');
+        return;
+    }
+
+    if (AppState.editingProjectId) {
+        // Edit existing project
+        const project = AppState.projects.find(p => p.id === AppState.editingProjectId);
+        if (project) {
+            project.name = name;
+            project.description = description;
+            showNotification('Project 已更新', 'success');
+        }
+    } else {
+        // Create new project
+        const newProject = {
+            id: 'project-' + Date.now(),
+            name: name,
+            description: description,
+            createdAt: new Date().toISOString().split('T')[0]
+        };
+        AppState.projects.push(newProject);
+        showNotification('Project 已创建', 'success');
+    }
+
+    // Close modal and refresh settings page
+    closeProjectEditor();
+    renderSettingsPage();
+}
+
+function deleteProject(projectId) {
+    // Check if project has assets
+    const assetsCount = AppState.assets.filter(a => a.projectId === projectId).length;
+
+    let message = '确定要删除这个 Project 吗？';
+    if (assetsCount > 0) {
+        message = `这个 Project 包含 ${assetsCount} 个素材。删除后，这些素材将不再属于任何 Project。确定要删除吗？`;
+    }
+
+    if (confirm(message)) {
+        const index = AppState.projects.findIndex(p => p.id === projectId);
+        if (index > -1) {
+            // Remove project
+            AppState.projects.splice(index, 1);
+
+            // Clear projectId from assets
+            AppState.assets.forEach(asset => {
+                if (asset.projectId === projectId) {
+                    asset.projectId = null;
+                }
+            });
+
+            // Clear filter if current filter is the deleted project
+            if (AppState.filters.project === projectId) {
+                AppState.filters.project = null;
+            }
+
+            renderSettingsPage();
+            showNotification('Project 已删除');
+        }
+    }
+}
+
+function closeProjectEditor() {
+    document.getElementById('projectEditorModal').classList.remove('open');
+
+    // Clear form
+    document.getElementById('projectName').value = '';
+    document.getElementById('projectDescription').value = '';
+    AppState.editingProjectId = null;
+}
+
+// ============================================================
+// Prompt Library Management Functions
+// ============================================================
+
+function getCategoryLabel(categoryKey) {
+    const labels = {
+        'multilingual-layout': '多语言排版优化',
+        'size-adjustment': '尺寸裁剪调整',
+        'translation': 'AI 翻译'
+    };
+    return labels[categoryKey] || categoryKey;
+}
+
+function addPresetPrompt(category) {
+    AppState.editingPromptCategory = category;
+    AppState.editingPromptId = null;
+
+    document.getElementById('promptEditorTitle').textContent = '添加预设提示词';
+    document.getElementById('promptCategoryDisplay').textContent = getCategoryLabel(category);
+    document.getElementById('promptText').value = '';
+    document.getElementById('promptEditorModal').classList.add('open');
+}
+
+function editPresetPrompt(category, promptId) {
+    const prompt = AppState.presetPrompts[category]?.find(p => p.id === promptId);
+    if (!prompt) {
+        showNotification('提示词不存在', 'error');
+        return;
+    }
+
+    AppState.editingPromptCategory = category;
+    AppState.editingPromptId = promptId;
+
+    document.getElementById('promptEditorTitle').textContent = '编辑预设提示词';
+    document.getElementById('promptCategoryDisplay').textContent = getCategoryLabel(category);
+    document.getElementById('promptText').value = prompt.text;
+    document.getElementById('promptEditorModal').classList.add('open');
+}
+
+function savePrompt() {
+    const text = document.getElementById('promptText').value.trim();
+    const category = AppState.editingPromptCategory;
+
+    if (!text) {
+        showNotification('请输入提示词内容', 'error');
+        return;
+    }
+
+    if (!category) {
+        showNotification('分类信息丢失', 'error');
+        return;
+    }
+
+    if (AppState.editingPromptId) {
+        // Update existing preset prompt
+        const prompt = AppState.presetPrompts[category]?.find(p => p.id === AppState.editingPromptId);
+        if (prompt) {
+            prompt.text = text;
+            showNotification('提示词已更新');
+        } else {
+            showNotification('提示词不存在', 'error');
+            return;
+        }
+    } else {
+        // Create new preset prompt
+        const newPrompt = {
+            id: category.substring(0, 2) + '-preset-' + Date.now(),
+            text: text,
+            category: category
+        };
+
+        if (!AppState.presetPrompts[category]) {
+            AppState.presetPrompts[category] = [];
+        }
+        AppState.presetPrompts[category].push(newPrompt);
+        showNotification('预设提示词已添加');
+    }
+
+    closePromptEditor();
+    renderSettingsPage();
+}
+
+function deletePresetPrompt(category, promptId) {
+    if (!confirm('确定要删除这个预设提示词吗？')) {
+        return;
+    }
+
+    const index = AppState.presetPrompts[category]?.findIndex(p => p.id === promptId);
+    if (index !== undefined && index !== -1) {
+        AppState.presetPrompts[category].splice(index, 1);
+        showNotification('预设提示词已删除');
+        renderSettingsPage();
+    } else {
+        showNotification('提示词不存在', 'error');
+    }
+}
+
+function toggleFavoritePrompt(promptId) {
+    const index = AppState.favoritePromptIds.indexOf(promptId);
+    if (index > -1) {
+        // Remove from favorites
+        AppState.favoritePromptIds.splice(index, 1);
+        showNotification('已取消常用标记');
+    } else {
+        // Add to favorites
+        AppState.favoritePromptIds.push(promptId);
+        showNotification('已标记为常用提示词');
+    }
+    renderSettingsPage();
+}
+
+function deleteUserPrompt(promptId) {
+    if (!confirm('确定要删除这个提示词吗？')) {
+        return;
+    }
+
+    const index = AppState.userPrompts.findIndex(p => p.id === promptId);
+    if (index !== -1) {
+        AppState.userPrompts.splice(index, 1);
+
+        // Also remove from favorites if present
+        const favIndex = AppState.favoritePromptIds.indexOf(promptId);
+        if (favIndex > -1) {
+            AppState.favoritePromptIds.splice(favIndex, 1);
+        }
+
+        showNotification('提示词已删除');
+        renderSettingsPage();
+    } else {
+        showNotification('提示词不存在', 'error');
+    }
+}
+
+function closePromptEditor() {
+    document.getElementById('promptEditorModal').classList.remove('open');
+
+    // Clear form
+    document.getElementById('promptText').value = '';
+    AppState.editingPromptCategory = null;
+    AppState.editingPromptId = null;
+}
+
+/**
+ * Record a user-written prompt automatically
+ * @param {string} text - The prompt text
+ * @param {string} category - The category ('multilingual-layout', 'size-adjustment', 'translation')
+ */
+function recordUserPrompt(text, category) {
+    if (!text || !text.trim()) return;
+
+    text = text.trim();
+
+    // Check if this prompt already exists in user prompts
+    const existingPrompt = AppState.userPrompts.find(p => p.text === text && p.category === category);
+
+    if (existingPrompt) {
+        // Update usage count and last used time
+        existingPrompt.usageCount++;
+        existingPrompt.lastUsedAt = new Date().toISOString();
+    } else {
+        // Create new user prompt
+        const newPrompt = {
+            id: 'user-prompt-' + Date.now(),
+            text: text,
+            category: category,
+            usageCount: 1,
+            createdAt: new Date().toISOString(),
+            lastUsedAt: new Date().toISOString()
+        };
+        AppState.userPrompts.push(newPrompt);
+    }
+}
+
+// ============================================================
+// Prompt Selector Functions
+// ============================================================
+
+/**
+ * Open prompt selector modal
+ * @param {string} category - The category of prompts to show
+ * @param {function} callback - Callback function to receive selected prompt text
+ */
+function openPromptSelector(category, callback) {
+    AppState.promptSelectorCategory = category;
+    AppState.promptSelectorCallback = callback;
+
+    // Set title
+    document.getElementById('promptSelectorTitle').textContent = getCategoryLabel(category);
+
+    // Clear custom input
+    document.getElementById('customPromptInput').value = '';
+
+    // Populate preset prompts
+    const presetPrompts = AppState.presetPrompts[category] || [];
+    const presetPromptsList = document.getElementById('presetPromptsList');
+
+    if (presetPrompts.length > 0) {
+        presetPromptsList.innerHTML = presetPrompts.map(prompt => `
+            <div class="prompt-option" onclick="selectPromptFromList('${prompt.id}', 'preset')" style="padding: 12px 16px; background: var(--color-hover); border: 1px solid transparent; border-radius: var(--radius); cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='transparent'">
+                <div style="font-size: 13px; color: var(--color-primary);">${prompt.text}</div>
+            </div>
+        `).join('');
+    } else {
+        presetPromptsList.innerHTML = `
+            <div style="padding: 16px; background: var(--color-hover); border-radius: var(--radius); text-align: center; font-size: 13px; color: var(--color-secondary);">
+                暂无预设提示词
+            </div>
+        `;
+    }
+
+    // Populate favorite prompts
+    const favoritePrompts = AppState.userPrompts.filter(p =>
+        p.category === category && AppState.favoritePromptIds.includes(p.id)
+    );
+    const favoritePromptsSection = document.getElementById('favoritePromptsSection');
+    const favoritePromptsList = document.getElementById('favoritePromptsList');
+
+    if (favoritePrompts.length > 0) {
+        favoritePromptsSection.style.display = 'block';
+        favoritePromptsList.innerHTML = favoritePrompts.map(prompt => `
+            <div class="prompt-option" onclick="selectPromptFromList('${prompt.id}', 'user')" style="padding: 12px 16px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius); cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 14px;">⭐</span>
+                    <span style="flex: 1; font-size: 13px; color: var(--color-primary);">${prompt.text}</span>
+                    <span style="font-size: 11px; color: var(--color-secondary); padding: 2px 6px; background: var(--color-hover); border-radius: 4px;">${prompt.usageCount} 次</span>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        favoritePromptsSection.style.display = 'none';
+    }
+
+    // Populate recent user prompts (excluding favorites, sorted by last used)
+    const recentPrompts = AppState.userPrompts
+        .filter(p => p.category === category && !AppState.favoritePromptIds.includes(p.id))
+        .sort((a, b) => new Date(b.lastUsedAt) - new Date(a.lastUsedAt))
+        .slice(0, 5); // Show top 5 recent prompts
+
+    const recentPromptsSection = document.getElementById('recentPromptsSection');
+    const recentPromptsList = document.getElementById('recentPromptsList');
+
+    if (recentPrompts.length > 0) {
+        recentPromptsSection.style.display = 'block';
+        recentPromptsList.innerHTML = recentPrompts.map(prompt => `
+            <div class="prompt-option" onclick="selectPromptFromList('${prompt.id}', 'user')" style="padding: 12px 16px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius); cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="flex: 1; font-size: 13px; color: var(--color-primary);">${prompt.text}</span>
+                    <span style="font-size: 11px; color: var(--color-secondary); padding: 2px 6px; background: var(--color-hover); border-radius: 4px;">${prompt.usageCount} 次</span>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        recentPromptsSection.style.display = 'none';
+    }
+
+    // Open modal
+    document.getElementById('promptSelectorModal').classList.add('open');
+}
+
+/**
+ * Select a prompt from the preset or user prompt list
+ */
+function selectPromptFromList(promptId, type) {
+    let promptText = '';
+
+    if (type === 'preset') {
+        const category = AppState.promptSelectorCategory;
+        const prompt = AppState.presetPrompts[category]?.find(p => p.id === promptId);
+        if (prompt) {
+            promptText = prompt.text;
+        }
+    } else if (type === 'user') {
+        const prompt = AppState.userPrompts.find(p => p.id === promptId);
+        if (prompt) {
+            promptText = prompt.text;
+        }
+    }
+
+    if (promptText) {
+        document.getElementById('customPromptInput').value = promptText;
+    }
+}
+
+/**
+ * Confirm prompt selection and execute callback
+ */
+function confirmPromptSelection() {
+    const promptText = document.getElementById('customPromptInput').value.trim();
+
+    if (!promptText) {
+        showNotification('请输入或选择提示词', 'error');
+        return;
+    }
+
+    const callback = AppState.promptSelectorCallback;
+    const category = AppState.promptSelectorCategory;
+
+    if (callback && typeof callback === 'function') {
+        // Record the prompt
+        recordUserPrompt(promptText, category);
+
+        // Execute callback with the prompt text
+        callback(promptText);
+    }
+
+    closePromptSelector();
+}
+
+/**
+ * Close prompt selector modal
+ */
+function closePromptSelector() {
+    document.getElementById('promptSelectorModal').classList.remove('open');
+    document.getElementById('customPromptInput').value = '';
+    AppState.promptSelectorCategory = null;
+    AppState.promptSelectorCallback = null;
 }
 
 function viewJobResult(jobId) {
