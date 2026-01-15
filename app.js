@@ -1069,13 +1069,50 @@ function renderMultilingualTool(canvas, settings) {
 }
 
 function renderMultiSizeTool(canvas, settings) {
+    const isFromMultilingual = AppState.isMultilingualFlow && AppState.currentMultilingualLanguages.length > 0;
+
     canvas.innerHTML = `
-        <div style="width: 100%; max-width: 800px;">
-            <h3 style="font-size: 24px; font-weight: 500; margin-bottom: 30px; text-align: center;">多尺寸生成</h3>
+        <div style="width: 100%; max-width: 900px;">
+            ${isFromMultilingual ? `
+            <!-- Multilingual Context Banner -->
+            <div style="background: linear-gradient(135deg, var(--color-accent) 0%, #c89968 100%); border-radius: var(--radius); padding: 24px; margin-bottom: 30px; color: white; box-shadow: var(--shadow-lg); animation: fadeIn 0.5s ease;">
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <circle cx="16" cy="16" r="13" stroke="white" stroke-width="2"/>
+                            <path d="M8 16H24M16 8C18.5 11 20.5 13.5 20.5 16C20.5 18.5 18.5 21 16 24M16 8C13.5 11 11.5 13.5 11.5 16C11.5 18.5 13.5 21 16 24" stroke="white" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">多语言模式已激活</div>
+                        <div style="font-size: 14px; opacity: 0.95; line-height: 1.5;">正在为 ${AppState.currentMultilingualLanguages.length} 种语言生成多尺寸版本。选择尺寸后，每种语言将生成对应的所有尺寸。</div>
+                        <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                            ${AppState.currentMultilingualLanguages.map(lang => `
+                                <span style="padding: 6px 12px; background: rgba(255,255,255,0.25); border-radius: 16px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 6px; height: 6px; background: white; border-radius: 50%; display: inline-block;"></span>
+                                    ${lang}: ${AppState.currentMultilingualTexts[lang]}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <button class="btn-secondary" onclick="cancelMultilingualMode()" style="flex-shrink: 0; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px;">
+                        取消多语言模式
+                    </button>
+                </div>
+            </div>
+            ` : ''}
+
+            <h3 style="font-size: 32px; font-weight: 500; margin-bottom: 12px; text-align: center; font-family: var(--font-display);">多尺寸生成</h3>
+            <p style="text-align: center; color: var(--color-secondary); font-size: 15px; margin-bottom: 40px;">
+                ${isFromMultilingual ? '为每种语言版本生成多个适配不同平台的尺寸' : '一次生成多个尺寸，适配不同平台需求'}
+            </p>
 
             <!-- Step 1: Select Presets -->
-            <div style="background: white; border-radius: var(--radius); padding: 30px; margin-bottom: 20px;">
-                <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">Step 1: 选择尺寸组合</h4>
+            <div style="background: white; border-radius: var(--radius); padding: 30px; margin-bottom: 24px; box-shadow: var(--shadow-md);">
+                <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Step 1: 选择尺寸组合</h4>
+                <p style="font-size: 14px; color: var(--color-secondary); margin-bottom: 20px; line-height: 1.6;">
+                    选择预设的尺寸组合，或添加自定义尺寸${isFromMultilingual ? `。<strong>每种语言将生成所选的全部尺寸。</strong>` : '。'}
+                </p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
                     ${AppState.sizePresets.map(preset => `
                         <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: var(--transition);"
@@ -1090,7 +1127,7 @@ function renderMultiSizeTool(canvas, settings) {
                         </div>
                     `).join('')}
                 </div>
-                <button class="btn-secondary" style="margin-top: 16px;" onclick="showSelectedSizes()">查看已选尺寸 →</button>
+                <button class="btn-secondary" style="margin-top: 16px; opacity: 0.5; cursor: not-allowed;" onclick="showSelectedSizes()" disabled>请先选择至少一个尺寸组合</button>
             </div>
 
             <!-- Selected Sizes -->
@@ -1104,13 +1141,19 @@ function renderMultiSizeTool(canvas, settings) {
 
     settings.innerHTML = `
         <h3 style="font-size: 14px; font-weight: 600; color: var(--color-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">输入图片</h3>
-        <div id="multiSizePreview" style="border: 2px dashed var(--color-border); border-radius: var(--radius); padding: 30px; text-align: center; background: var(--color-hover); cursor: pointer; margin-bottom: 20px;">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="opacity: 0.3; margin-bottom: 8px;">
-                <path d="M16 4V28M4 16H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <p style="font-size: 13px; color: var(--color-secondary);">上传图片</p>
+        <div id="multiSizePreview" style="border: 2px ${AppState.currentSourceImage ? 'solid' : 'dashed'} var(--color-border); border-radius: var(--radius); padding: ${AppState.currentSourceImage ? '20px' : '30px'}; text-align: center; background: var(--color-hover); cursor: pointer; margin-bottom: 20px;">
+            ${AppState.currentSourceImage ? `
+                <img src="${AppState.currentSourceImage}" style="width: 100%; max-height: 200px; object-fit: contain; border-radius: var(--radius); margin-bottom: 8px;" alt="Source Image">
+                <p style="font-size: 13px; font-weight: 500; color: var(--color-primary);">${isFromMultilingual ? '多语言源图片' : '已选择图片'}</p>
+                ${isFromMultilingual ? '<p style="font-size: 11px; color: var(--color-secondary); margin-top: 4px;">来自多语言流程</p>' : ''}
+            ` : `
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="opacity: 0.3; margin-bottom: 8px;">
+                    <path d="M16 4V28M4 16H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <p style="font-size: 13px; color: var(--color-secondary);">上传图片</p>
+            `}
         </div>
-        <button class="btn-secondary" style="width: 100%;" onclick="openAssetPicker('multi-size', handleMultiSizeAssetSelect)">从素材库选择</button>
+        <button class="btn-secondary" style="width: 100%;" onclick="openAssetPicker('multi-size', handleMultiSizeAssetSelect)">${AppState.currentSourceImage ? '重新选择图片' : '从素材库选择'}</button>
 
         <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--color-border);">
             <h3 style="font-size: 14px; font-weight: 600; color: var(--color-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">组合管理</h3>
@@ -1383,49 +1426,205 @@ function handleMultilingualAssetSelect(asset) {
                 </div>
 
                 <!-- Step 2: Language Input -->
-                <div style="background: white; border-radius: var(--radius); padding: 30px; margin-bottom: 20px;">
-                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Step 2: 输入多语言文字</h4>
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;">要替换的文字描述</label>
-                        <input type="text" id="textToReplace" placeholder="例如：SALE 50% OFF" style="width: 100%; padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 14px;" value="SUMMER SALE">
+                <div style="background: white; border-radius: var(--radius); padding: 30px; margin-bottom: 24px; box-shadow: var(--shadow-md); border-left: 4px solid var(--color-primary);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;">2</div>
+                        <h4 style="font-size: 18px; font-weight: 600; color: var(--color-primary);">Step 2: 输入多语言文字</h4>
                     </div>
-                    <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px;">多语言列表</label>
-                        <div style="border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden;">
-                            <div style="display: grid; grid-template-columns: 120px 1fr; background: var(--color-hover);">
-                                <div style="padding: 10px; font-size: 13px; font-weight: 600; border-right: 1px solid var(--color-border);">语言</div>
-                                <div style="padding: 10px; font-size: 13px; font-weight: 600;">替换文字</div>
+
+                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 16px; border-radius: var(--radius); margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2Z" stroke="#6b6b6b" stroke-width="1.5"/>
+                                <path d="M10 6V10L13 12" stroke="#6b6b6b" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span style="font-size: 13px; color: var(--color-secondary); font-weight: 500;">提示：输入您想要替换的文字内容，系统将自动应用到所选图片上</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--color-primary);">原始文字描述（可选）</label>
+                        <input type="text"
+                               id="textToReplace"
+                               placeholder="例如：SALE 50% OFF"
+                               style="width: 100%; padding: 12px 16px; border: 2px solid var(--color-border); border-radius: var(--radius); font-size: 14px; transition: var(--transition);"
+                               value="SUMMER SALE"
+                               onfocus="this.style.borderColor='var(--color-primary)'"
+                               onblur="this.style.borderColor='var(--color-border)'">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <label style="font-size: 14px; font-weight: 600; color: var(--color-primary);">多语言内容</label>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px;" onclick="showNotification('AI 辅助翻译功能开发中...')">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M7 1L9 6H13L9.5 9L11 13L7 10L3 13L4.5 9L1 6H5L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                    </svg>
+                                    AI 翻译
+                                </button>
                             </div>
-                            <div style="display: grid; grid-template-columns: 120px 1fr; border-top: 1px solid var(--color-border);">
-                                <div style="padding: 10px; font-size: 13px; border-right: 1px solid var(--color-border);">EN</div>
-                                <input type="text" id="lang-EN" placeholder="English text" value="SUMMER SALE" style="padding: 10px; border: none; font-size: 13px;">
+                        </div>
+
+                        <div style="display: grid; gap: 16px;">
+                            <div style="background: white; border: 2px solid var(--color-border); border-radius: var(--radius); overflow: hidden; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                                <div style="display: flex; align-items: center; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                    <div style="width: 100px; font-size: 13px; font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: #3498db; color: white; text-align: center; line-height: 24px; font-size: 11px; font-weight: 600;">EN</span>
+                                        English
+                                    </div>
+                                    <input type="text"
+                                           id="lang-EN"
+                                           placeholder="Enter English text..."
+                                           value="${AppState.currentMultilingualTexts['EN'] || 'SUMMER SALE'}"
+                                           style="flex: 1; padding: 8px 12px; border: none; font-size: 14px; background: transparent; outline: none;">
+                                </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 120px 1fr; border-top: 1px solid var(--color-border);">
-                                <div style="padding: 10px; font-size: 13px; border-right: 1px solid var(--color-border);">AR</div>
-                                <input type="text" id="lang-AR" placeholder="النص العربي" value="تخفيضات الصيف" style="padding: 10px; border: none; font-size: 13px;">
+
+                            <div style="background: white; border: 2px solid var(--color-border); border-radius: var(--radius); overflow: hidden; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                                <div style="display: flex; align-items: center; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                    <div style="width: 100px; font-size: 13px; font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: #2ecc71; color: white; text-align: center; line-height: 24px; font-size: 11px; font-weight: 600;">AR</span>
+                                        العربية
+                                    </div>
+                                    <input type="text"
+                                           id="lang-AR"
+                                           placeholder="أدخل النص العربي..."
+                                           value="${AppState.currentMultilingualTexts['AR'] || 'تخفيضات الصيف'}"
+                                           style="flex: 1; padding: 8px 12px; border: none; font-size: 14px; background: transparent; outline: none;"
+                                           dir="rtl">
+                                </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 120px 1fr; border-top: 1px solid var(--color-border);">
-                                <div style="padding: 10px; font-size: 13px; border-right: 1px solid var(--color-border);">FR</div>
-                                <input type="text" id="lang-FR" placeholder="Texte français" value="SOLDES D'ÉTÉ" style="padding: 10px; border: none; font-size: 13px;">
+
+                            <div style="background: white; border: 2px solid var(--color-border); border-radius: var(--radius); overflow: hidden; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                                <div style="display: flex; align-items: center; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                    <div style="width: 100px; font-size: 13px; font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: #e74c3c; color: white; text-align: center; line-height: 24px; font-size: 11px; font-weight: 600;">FR</span>
+                                        Français
+                                    </div>
+                                    <input type="text"
+                                           id="lang-FR"
+                                           placeholder="Entrez le texte français..."
+                                           value="${AppState.currentMultilingualTexts['FR'] || 'SOLDES D\'ÉTÉ'}"
+                                           style="flex: 1; padding: 8px 12px; border: none; font-size: 14px; background: transparent; outline: none;">
+                                </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: 120px 1fr; border-top: 1px solid var(--color-border);">
-                                <div style="padding: 10px; font-size: 13px; border-right: 1px solid var(--color-border);">ZH</div>
-                                <input type="text" id="lang-ZH" placeholder="中文文本" value="夏季大促" style="padding: 10px; border: none; font-size: 13px;">
+
+                            <div style="background: white; border: 2px solid var(--color-border); border-radius: var(--radius); overflow: hidden; transition: var(--transition);" onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border)'">
+                                <div style="display: flex; align-items: center; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                    <div style="width: 100px; font-size: 13px; font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: #f39c12; color: white; text-align: center; line-height: 24px; font-size: 11px; font-weight: 600;">ZH</span>
+                                        中文
+                                    </div>
+                                    <input type="text"
+                                           id="lang-ZH"
+                                           placeholder="输入中文内容..."
+                                           value="${AppState.currentMultilingualTexts['ZH'] || '夏季大促'}"
+                                           style="flex: 1; padding: 8px 12px; border: none; font-size: 14px; background: transparent; outline: none;">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <button class="btn-secondary" style="margin-bottom: 12px;">+ 添加语言</button>
-                    <button class="btn-secondary">AI 辅助翻译</button>
+
+                    <button class="btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        添加更多语言
+                    </button>
                 </div>
 
                 <!-- Step 3: Preview -->
-                <div style="background: white; border-radius: var(--radius); padding: 30px;">
-                    <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Step 3: 预览与下一步</h4>
-                    <p style="font-size: 13px; color: var(--color-secondary); margin-bottom: 16px;">输入多语言文字后，可预览效果并进入多尺寸生成</p>
-                    <button class="btn-primary" style="width: 100%;" onclick="generateMultilingualPreview()">生成预览 →</button>
+                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: var(--radius); padding: 30px; box-shadow: var(--shadow-sm); border: 2px dashed var(--color-border);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--color-border); color: var(--color-secondary); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px;">3</div>
+                        <h4 style="font-size: 18px; font-weight: 600; color: var(--color-secondary);">Step 3: 生成预览</h4>
+                        <div id="languageCounter" style="margin-left: auto; padding: 6px 12px; background: var(--color-hover); border-radius: 16px; font-size: 13px; font-weight: 500; color: var(--color-secondary); display: none;">
+                            <span id="languageCountText">已填写 0 种语言</span>
+                        </div>
+                    </div>
+                    <p style="font-size: 14px; color: var(--color-secondary); margin-bottom: 20px; line-height: 1.6;">
+                        填写完成后，点击下方按钮生成多语言预览。系统将为每种语言生成对应的图片版本，您可以实时查看并调整。
+                    </p>
+                    <button id="generatePreviewBtn" class="btn-primary" style="width: 100%; padding: 14px 24px; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; opacity: 0.5; cursor: not-allowed;" onclick="generateMultilingualPreview()" disabled>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span id="generateBtnText">生成多语言预览</span>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M7 4L13 10L7 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         `;
+
+        // Add real-time input tracking
+        setTimeout(() => {
+            const updateLanguageCounter = () => {
+                const languages = ['EN', 'AR', 'FR', 'ZH'];
+                let filledCount = 0;
+
+                languages.forEach(lang => {
+                    const input = document.getElementById(`lang-${lang}`);
+                    if (input && input.value.trim()) {
+                        filledCount++;
+                    }
+                });
+
+                const counter = document.getElementById('languageCounter');
+                const countText = document.getElementById('languageCountText');
+                const generateBtn = document.getElementById('generatePreviewBtn');
+                const generateBtnText = document.getElementById('generateBtnText');
+
+                if (counter && countText) {
+                    if (filledCount > 0) {
+                        counter.style.display = 'block';
+                        countText.textContent = `已填写 ${filledCount} 种语言`;
+
+                        // Update counter color based on count
+                        if (filledCount >= 3) {
+                            counter.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+                            counter.style.color = 'white';
+                        } else if (filledCount >= 2) {
+                            counter.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+                            counter.style.color = 'white';
+                        } else {
+                            counter.style.background = 'var(--color-hover)';
+                            counter.style.color = 'var(--color-secondary)';
+                        }
+                    } else {
+                        counter.style.display = 'none';
+                    }
+                }
+
+                if (generateBtn && generateBtnText) {
+                    if (filledCount > 0) {
+                        generateBtn.disabled = false;
+                        generateBtn.style.opacity = '1';
+                        generateBtn.style.cursor = 'pointer';
+                        generateBtnText.textContent = `生成 ${filledCount} 种语言预览`;
+                    } else {
+                        generateBtn.disabled = true;
+                        generateBtn.style.opacity = '0.5';
+                        generateBtn.style.cursor = 'not-allowed';
+                        generateBtnText.textContent = '请先输入至少一种语言';
+                    }
+                }
+            };
+
+            // Attach input listeners to all language fields
+            ['EN', 'AR', 'FR', 'ZH'].forEach(lang => {
+                const input = document.getElementById(`lang-${lang}`);
+                if (input) {
+                    input.addEventListener('input', updateLanguageCounter);
+                }
+            });
+
+            // Initial update
+            updateLanguageCounter();
+        }, 100);
     }
     showNotification(`已选择素材: ${asset.title}`);
 }
@@ -1478,25 +1677,62 @@ function renderMultilingualPreview() {
         AppState.currentPreviewLanguage = firstLanguage;
     }
 
+    // Get language color map
+    const languageColors = {
+        'EN': '#3498db',
+        'AR': '#2ecc71',
+        'FR': '#e74c3c',
+        'ZH': '#f39c12',
+        'ES': '#9b59b6'
+    };
+
     canvas.innerHTML = `
-        <div style="width: 100%; max-width: 900px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <h3 style="font-size: 24px; font-weight: 500;">多语言预览</h3>
-                <button class="btn-secondary" onclick="backToMultilingualEdit()">← 返回编辑</button>
+        <div style="width: 100%; max-width: 1000px;">
+            <!-- Header with Progress -->
+            <div style="background: white; border-radius: var(--radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="font-size: 32px; font-weight: 500; margin-bottom: 8px; font-family: var(--font-display);">多语言预览</h3>
+                        <p style="color: var(--color-secondary); font-size: 14px;">已成功生成 ${AppState.currentMultilingualLanguages.length} 种语言版本，可切换预览或直接进入多尺寸生成</p>
+                    </div>
+                    <button class="btn-secondary" onclick="backToMultilingualEdit()" style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        返回编辑
+                    </button>
+                </div>
             </div>
 
             <!-- Language Tabs -->
-            <div style="background: white; border-radius: var(--radius); padding: 24px; margin-bottom: 24px;">
-                <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
-                    ${AppState.currentMultilingualLanguages.map(lang => `
-                        <button class="language-preview-tab ${lang === AppState.currentPreviewLanguage ? 'active' : ''}"
+            <div style="background: white; border-radius: var(--radius); padding: 30px; margin-bottom: 24px; box-shadow: var(--shadow-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h4 style="font-size: 18px; font-weight: 600;">语言切换</h4>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;" onclick="aiAdjustMultilingualLayout()">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M7 1L9 6H13L9.5 9L11 13L7 10L3 13L4.5 9L1 6H5L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            </svg>
+                            AI 优化
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                    ${AppState.currentMultilingualLanguages.map(lang => {
+                        const isActive = lang === AppState.currentPreviewLanguage;
+                        const bgColor = languageColors[lang] || '#6b6b6b';
+                        return `
+                        <button class="language-preview-tab"
                                 data-lang="${lang}"
                                 onclick="switchPreviewLanguage('${lang}')"
-                                style="padding: 12px 24px; border-radius: var(--radius); border: 2px solid ${lang === AppState.currentPreviewLanguage ? 'var(--color-primary)' : 'var(--color-border)'}; background: ${lang === AppState.currentPreviewLanguage ? 'var(--color-primary)' : 'var(--color-surface)'}; color: ${lang === AppState.currentPreviewLanguage ? 'white' : 'var(--color-primary)'}; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 14px;">
-                            ${lang}
-                            <span style="margin-left: 8px; opacity: 0.8; font-weight: 400;">${AppState.currentMultilingualTexts[lang]}</span>
+                                style="padding: 16px; border-radius: var(--radius); border: 3px solid ${isActive ? bgColor : 'var(--color-border)'}; background: ${isActive ? bgColor : 'white'}; color: ${isActive ? 'white' : 'var(--color-primary)'}; cursor: pointer; transition: var(--transition); font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; overflow: hidden;">
+                            ${isActive ? '<div style="position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">✓</div>' : ''}
+                            <div style="font-size: 20px; font-weight: 700;">${lang}</div>
+                            <div style="font-size: 13px; opacity: ${isActive ? '0.95' : '0.7'}; text-align: center; line-height: 1.4;">${AppState.currentMultilingualTexts[lang]}</div>
                         </button>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </div>
 
                 <!-- Preview Image -->
@@ -1556,16 +1792,27 @@ function renderMultilingualPreview() {
 function switchPreviewLanguage(language) {
     AppState.currentPreviewLanguage = language;
 
-    // Update tabs
+    // Language color mapping (consistent with render)
+    const languageColors = {
+        'EN': '#3498db',
+        'AR': '#2ecc71',
+        'FR': '#e74c3c',
+        'ZH': '#f39c12',
+        'ES': '#9b59b6'
+    };
+
+    // Update tabs with language-specific colors
     document.querySelectorAll('.language-preview-tab').forEach(tab => {
         const lang = tab.dataset.lang;
+        const bgColor = languageColors[lang] || '#6b6b6b';
+
         if (lang === language) {
-            tab.style.borderColor = 'var(--color-primary)';
-            tab.style.background = 'var(--color-primary)';
+            tab.style.borderColor = bgColor;
+            tab.style.background = bgColor;
             tab.style.color = 'white';
         } else {
             tab.style.borderColor = 'var(--color-border)';
-            tab.style.background = 'var(--color-surface)';
+            tab.style.background = 'white';
             tab.style.color = 'var(--color-primary)';
         }
     });
@@ -1605,18 +1852,27 @@ function aiAdjustMultilingualLayout() {
 }
 
 function proceedToMultiSizeFromMultilingual() {
-    showNotification('进入多尺寸生成流程...');
+    showNotification('正在切换到多尺寸生成...');
 
     // Store that we're coming from multilingual flow
     AppState.isMultilingualFlow = true;
 
+    // Automatically set the source image from multilingual asset
+    if (AppState.currentMultilingualAsset) {
+        AppState.currentSourceImage = AppState.currentMultilingualAsset.originalImage;
+    }
+
     // Switch to multi-size tool
     selectTool('multi-size');
 
-    // Show notification about multilingual context
+    // Show success notification with context
     setTimeout(() => {
-        showNotification('将为每种语言生成多个尺寸版本');
-    }, 500);
+        const langCount = AppState.currentMultilingualLanguages.length;
+        showNotification(`已进入多尺寸生成，将为 ${langCount} 种语言分别生成多个尺寸`);
+
+        // Scroll to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 300);
 }
 
 function saveMultilingualOnly() {
@@ -1631,10 +1887,67 @@ function saveMultilingualOnly() {
     }, 1500);
 }
 
+function cancelMultilingualMode() {
+    if (confirm('确定要取消多语言模式吗？多语言上下文将被清除。')) {
+        // Clear multilingual flow state
+        AppState.isMultilingualFlow = false;
+        AppState.currentMultilingualLanguages = [];
+        AppState.currentMultilingualTexts = {};
+        AppState.currentMultilingualPreviews = {};
+        AppState.currentPreviewLanguage = null;
+
+        // Re-render multi-size tool without multilingual context
+        const canvas = document.getElementById('toolCanvas');
+        const settings = document.getElementById('settingsPanel');
+        renderMultiSizeTool(canvas, settings);
+
+        showNotification('已退出多语言模式');
+    }
+}
+
 function togglePresetSelection(presetId) {
     const checkbox = document.getElementById(`preset-${presetId}`);
     if (checkbox) {
         checkbox.checked = !checkbox.checked;
+
+        // Update visual feedback for the card
+        const card = checkbox.closest('div[onclick]');
+        if (card) {
+            if (checkbox.checked) {
+                card.style.borderColor = 'var(--color-primary)';
+                card.style.background = 'linear-gradient(135deg, rgba(26,26,26,0.03) 0%, rgba(26,26,26,0.05) 100%)';
+                card.style.boxShadow = 'var(--shadow-md)';
+            } else {
+                card.style.borderColor = 'var(--color-border)';
+                card.style.background = 'white';
+                card.style.boxShadow = 'none';
+            }
+        }
+
+        // Update the "查看已选尺寸" button state
+        updateShowSelectedSizesButton();
+    }
+}
+
+function updateShowSelectedSizesButton() {
+    const selectedCount = AppState.sizePresets.filter(preset => {
+        const checkbox = document.getElementById(`preset-${preset.id}`);
+        return checkbox && checkbox.checked;
+    }).length;
+
+    const showSizesBtn = document.querySelector('button[onclick="showSelectedSizes()"]');
+    if (showSizesBtn) {
+        if (selectedCount > 0) {
+            showSizesBtn.textContent = `查看已选尺寸 (${selectedCount}) →`;
+            showSizesBtn.disabled = false;
+            showSizesBtn.style.opacity = '1';
+            showSizesBtn.style.cursor = 'pointer';
+        } else {
+            showSizesBtn.textContent = '请先选择至少一个尺寸组合';
+            showSizesBtn.disabled = true;
+            showSizesBtn.style.opacity = '0.5';
+            showSizesBtn.style.cursor = 'not-allowed';
+        }
     }
 }
 
